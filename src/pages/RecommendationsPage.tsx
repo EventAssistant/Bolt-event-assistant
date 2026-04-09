@@ -16,6 +16,7 @@ import {
   Building2,
   Activity,
   Download,
+  Mail,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -476,6 +477,12 @@ function ClientContextCard({ profile }: { profile: ClientProfile }) {
           <p className="text-xs text-muted-foreground">Client</p>
           <p className="text-sm font-medium text-foreground mt-0.5">{profile.name}</p>
           <p className="text-xs text-muted-foreground">{profile.title} · {profile.industry}</p>
+          {profile.email && (
+            <p className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+              <Mail className="h-3 w-3 shrink-0" />
+              {profile.email}
+            </p>
+          )}
         </div>
         {profile.targetRoles.length > 0 && (
           <>

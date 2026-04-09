@@ -13,6 +13,7 @@ import {
   Copy,
   Check,
   Pencil,
+  Mail,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -85,7 +86,7 @@ function ShareLinkBanner() {
 function toClientProfile(row: SubmittedProfileRow): ClientProfile {
   return {
     name: row.name,
-    email: "",
+    email: row.email,
     industry: row.industry,
     title: row.title,
     city: "",
@@ -150,6 +151,12 @@ function ProfileCard({
                 <p className="text-sm text-muted-foreground mt-0.5">
                   {[profile.title, profile.industry].filter(Boolean).join(" · ") || "—"}
                 </p>
+                {profile.email && (
+                  <p className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                    <Mail className="h-3 w-3 shrink-0" />
+                    {profile.email}
+                  </p>
+                )}
               </div>
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground shrink-0">
                 <Calendar className="h-3 w-3" />

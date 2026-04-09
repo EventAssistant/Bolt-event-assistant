@@ -15,6 +15,7 @@ const REVENUE_RANGE_OPTIONS = ["Under $500K", "$500K-$2M", "$2M-$10M", "$10M-$50
 
 interface IntakeForm {
   name: string
+  email: string
   title: string
   industry: string
   targetProspectDescription: string
@@ -33,6 +34,7 @@ interface IntakeForm {
 
 const emptyForm: IntakeForm = {
   name: "",
+  email: "",
   title: "",
   industry: "",
   targetProspectDescription: "",
@@ -242,6 +244,7 @@ export function ClientIntakePage() {
 
     const { error: dbError } = await supabase.from("submitted_profiles").insert({
       name: form.name,
+      email: form.email,
       industry: form.industry,
       title: form.title,
       target_prospect_description: form.targetProspectDescription,
@@ -331,6 +334,20 @@ export function ClientIntakePage() {
                       className="bg-secondary/40 border-border/60 focus:border-primary/40"
                     />
                   </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-sm font-medium text-foreground">
+                    Email Address <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={form.email}
+                    onChange={(e) => set("email", e.target.value)}
+                    placeholder="e.g. sarah@company.com"
+                    className="bg-secondary/40 border-border/60 focus:border-primary/40"
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="industry" className="text-sm font-medium text-foreground">
@@ -583,7 +600,7 @@ export function ClientIntakePage() {
             <Button
               type="submit"
               size="lg"
-              disabled={submitting || !form.name.trim()}
+              disabled={submitting || !form.name.trim() || !form.email.trim()}
               className="w-full h-14 text-base font-semibold gap-2"
             >
               {submitting ? (

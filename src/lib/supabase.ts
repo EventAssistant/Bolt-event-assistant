@@ -8,6 +8,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 export interface SubmittedProfileRow {
   id: string
   name: string
+  email: string
   industry: string
   title: string
   target_prospect_description: string

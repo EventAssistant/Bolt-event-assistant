@@ -162,6 +162,16 @@ export function EditProfileModal({ profile, open, onOpenChange, onSave }: EditPr
                   />
                 </div>
                 <div className="space-y-1.5">
+                  <Label className="text-sm font-medium">Email Address</Label>
+                  <Input
+                    type="email"
+                    value={form.email}
+                    onChange={(e) => update({ email: e.target.value })}
+                    placeholder="e.g. sarah@company.com"
+                    className="bg-muted/30"
+                  />
+                </div>
+                <div className="space-y-1.5">
                   <Label className="text-sm font-medium">Job Title</Label>
                   <Input
                     value={form.title}
