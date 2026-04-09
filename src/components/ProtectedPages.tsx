@@ -1,0 +1,32 @@
+import { useSession } from "@/contexts/SessionContext"
+import { UploadPage } from "@/pages/UploadPage"
+import { ClientProfilePage } from "@/pages/ClientProfilePage"
+import { RecommendationsPage } from "@/pages/RecommendationsPage"
+import { SubmittedProfilesPage } from "@/pages/SubmittedProfilesPage"
+
+function Upload() {
+  const { setEvents, setOrganizations } = useSession()
+  return <UploadPage onEventsChange={setEvents} onOrganizationsChange={setOrganizations} />
+}
+
+function Profile() {
+  const { activeProfile, setActiveProfile } = useSession()
+  return <ClientProfilePage initialProfile={activeProfile} onProfileChange={setActiveProfile} />
+}
+
+function Recommendations() {
+  const { activeProfile, events, organizations } = useSession()
+  return <RecommendationsPage profile={activeProfile} events={events} organizations={organizations} />
+}
+
+function Submissions() {
+  const { setActiveProfile } = useSession()
+  return <SubmittedProfilesPage onLoadProfile={setActiveProfile} />
+}
+
+export const ProtectedPages = {
+  Upload,
+  Profile,
+  Recommendations,
+  Submissions,
+}

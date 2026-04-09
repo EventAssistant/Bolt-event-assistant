@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react"
+import { createContext, useContext, useEffect, useRef, useState, useMemo } from "react"
 import type { ReactNode } from "react"
 import { supabase } from "@/lib/supabase"
 import type { User } from "@supabase/supabase-js"
@@ -16,12 +16,17 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const userIdRef = useRef<string | null>(null)
 
   useEffect(() => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
+      const newUserId = session?.user?.id ?? null
+      if (newUserId !== userIdRef.current) {
+        userIdRef.current = newUserId
+        setUser(session?.user ?? null)
+      }
       setLoading(false)
     })
 
@@ -43,8 +48,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error
   }
 
+  const value = useMemo(
+    () => ({ user, loading, signUp, signIn, signOut }),
+    [user, loading]
+  )
+
   return (
-    <AuthContext.Provider value={{ user, loading, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   )
