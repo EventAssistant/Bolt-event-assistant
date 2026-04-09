@@ -12,6 +12,7 @@ import {
   Link,
   Copy,
   Check,
+  Pencil,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -21,6 +22,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { supabase, type SubmittedProfileRow } from "@/lib/supabase"
 import { useNavigate } from "react-router-dom"
 import type { ClientProfile } from "@/types"
+import { EditProfileModal } from "@/components/EditProfileModal"
 
 function ShareLinkBanner() {
   const [copied, setCopied] = useState(false)
@@ -108,9 +110,11 @@ function toClientProfile(row: SubmittedProfileRow): ClientProfile {
 function ProfileCard({
   profile,
   onLoad,
+  onEdit,
 }: {
   profile: SubmittedProfileRow
   onLoad: () => void
+  onEdit: () => void
 }) {
   const submittedDate = new Date(profile.submitted_at)
   const formattedDate = submittedDate.toLocaleDateString("en-US", {
@@ -222,11 +226,17 @@ function ProfileCard({
 
         <Separator />
 
-        <Button onClick={onLoad} className="w-full gap-2" size="sm">
-          <CheckCircle2 className="h-4 w-4" />
-          Load into Client Profile
-          <ChevronRight className="h-3.5 w-3.5 ml-auto" />
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={onEdit} className="gap-1.5 shrink-0">
+            <Pencil className="h-3.5 w-3.5" />
+            Edit
+          </Button>
+          <Button onClick={onLoad} className="flex-1 gap-2" size="sm">
+            <CheckCircle2 className="h-4 w-4" />
+            Load into Client Profile
+            <ChevronRight className="h-3.5 w-3.5 ml-auto" />
+          </Button>
+        </div>
       </CardContent>
     </Card>
   )
@@ -269,6 +279,7 @@ export function SubmittedProfilesPage({
   const [profiles, setProfiles] = useState<SubmittedProfileRow[]>([])
   const [loading, setLoading] = useState(true)
   const [loadedId, setLoadedId] = useState<string | null>(null)
+  const [editingProfile, setEditingProfile] = useState<SubmittedProfileRow | null>(null)
 
   const fetchProfiles = async () => {
     setLoading(true)
@@ -293,6 +304,11 @@ export function SubmittedProfilesPage({
     setTimeout(() => {
       navigate("/profile")
     }, 600)
+  }
+
+  const handleSaveEdit = (updated: SubmittedProfileRow) => {
+    setProfiles((prev) => prev.map((p) => (p.id === updated.id ? updated : p)))
+    setEditingProfile(null)
   }
 
   return (
@@ -342,11 +358,24 @@ export function SubmittedProfilesPage({
                     </div>
                   </div>
                 )}
-                <ProfileCard profile={profile} onLoad={() => handleLoad(profile)} />
+                <ProfileCard
+                  profile={profile}
+                  onLoad={() => handleLoad(profile)}
+                  onEdit={() => setEditingProfile(profile)}
+                />
               </div>
             ))}
           </div>
         </div>
+      )}
+
+      {editingProfile && (
+        <EditProfileModal
+          profile={editingProfile}
+          open={editingProfile !== null}
+          onOpenChange={(val) => { if (!val) setEditingProfile(null) }}
+          onSave={handleSaveEdit}
+        />
       )}
     </div>
   )
