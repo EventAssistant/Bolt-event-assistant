@@ -672,7 +672,18 @@ export function RecommendationsPage({
       enriched.sort((a, b) => a.priority_rank - b.priority_rank)
       setRecommendations(enriched)
 
-      const orgRecs: OrgRecommendation[] = data.org_recommendations ?? []
+      const orgRecs: OrgRecommendation[] = (data.org_recommendations ?? []).map((rec: OrgRecommendation) => {
+        const needle = (rec.org_name ?? "").toLowerCase().trim()
+        const matched = organizations.find((o) => {
+          const hay = o.name.toLowerCase().trim()
+          return hay === needle || hay.includes(needle) || needle.includes(hay)
+        })
+        return {
+          ...rec,
+          home_page: matched?.home_page || rec.home_page || "",
+          calendar_link: matched?.calendar || rec.calendar_link || "",
+        }
+      })
       orgRecs.sort((a, b) => a.priority_rank - b.priority_rank)
       setOrgRecommendations(orgRecs)
 
