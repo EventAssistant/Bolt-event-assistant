@@ -119,10 +119,10 @@ interface EditProfileModalProps {
 }
 
 export function EditProfileModal({ profile, open, onOpenChange, onSave }: EditProfileModalProps) {
-  const [form, setForm] = useState<SubmittedProfileRow>({ ...profile })
+  const [form, setForm] = useState<SubmittedProfileRow>({ ...profile, email: profile.email ?? "" })
 
   const resetAndOpen = (val: boolean) => {
-    if (val) setForm({ ...profile })
+    if (val) setForm({ ...profile, email: profile.email ?? "" })
     onOpenChange(val)
   }
 

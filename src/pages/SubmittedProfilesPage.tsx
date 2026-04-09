@@ -24,6 +24,7 @@ import { supabase, type SubmittedProfileRow } from "@/lib/supabase"
 import { useNavigate } from "react-router-dom"
 import type { ClientProfile } from "@/types"
 import { EditProfileModal } from "@/components/EditProfileModal"
+import { toast } from "sonner"
 
 function ShareLinkBanner() {
   const [copied, setCopied] = useState(false)
@@ -318,7 +319,7 @@ export function SubmittedProfilesPage({
       .from("submitted_profiles")
       .update({
         name: updated.name,
-        email: updated.email,
+        email: updated.email ?? "",
         title: updated.title,
         industry: updated.industry,
         geographic_area: updated.geographic_area,
@@ -338,10 +339,13 @@ export function SubmittedProfilesPage({
       })
       .eq("id", updated.id)
 
-    if (!error) {
+    if (error) {
+      toast.error("Failed to save changes. Please try again.")
+    } else {
       setProfiles((prev) => prev.map((p) => (p.id === updated.id ? updated : p)))
+      toast.success("Profile updated successfully.")
+      setEditingProfile(null)
     }
-    setEditingProfile(null)
   }
 
   return (
