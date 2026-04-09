@@ -371,20 +371,17 @@ function generateReportHTML(
         ev?.paid ? `Cost: ${ev.paid}` : null,
       ].filter(Boolean)
       const googleUrl = ev ? buildGoogleCalendarUrl(ev) : ""
-      const calendarLinks = ev?.start_date
-        ? `<div style="margin-top: 0.75rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
-            ${googleUrl ? `<a href="${googleUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-block; padding: 0.3rem 0.75rem; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.8rem; color: #374151; text-decoration: none;">📅 Google Calendar</a>` : ""}
-            <span style="display: inline-block; padding: 0.3rem 0.75rem; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.8rem; color: #6b7280;">🍎 Apple / 🖥️ Outlook — download .ics from the app</span>
-          </div>`
-        : ""
+      const eventButtons = [
+        eventUrl ? `<a href="${eventUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-block; padding: 0.3rem 0.75rem; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.8rem; color: #374151; text-decoration: none;">🌐 View Event</a>` : "",
+        googleUrl ? `<a href="${googleUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-block; padding: 0.3rem 0.75rem; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.8rem; color: #374151; text-decoration: none;">📅 Google Calendar</a>` : "",
+      ].filter(Boolean).join(" ")
       return `
     <div style="margin-bottom: 2rem; padding: 1rem; border: 1px solid #e5e7eb; border-radius: 0.5rem;">
       <div style="margin-bottom: 0.5rem;">
         <strong style="font-size: 1.125rem;">#${rec.priority_rank} — ${eventNameDisplay}</strong>
       </div>
       ${metaParts.length > 0 ? `<p style="color: #888; font-size: 0.875rem; margin: 0.25rem 0 0.75rem;">${metaParts.join(" · ")}</p>` : ""}
-      ${eventUrl ? `<p style="margin: 0.25rem 0 0.5rem;"><a href="${eventUrl}" target="_blank" rel="noopener noreferrer" style="color: #555; font-size: 0.875rem;">${eventUrl}</a></p>` : ""}
-      ${calendarLinks}
+      ${eventButtons ? `<div style="margin: 0.5rem 0 0.75rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">${eventButtons}</div>` : ""}
       <p style="color: #666; margin: 0.75rem 0 0.5rem;"><strong>Why:</strong> ${rec.why_this_event}</p>
       <p style="color: #666; margin: 0.5rem 0;"><strong>Who:</strong> ${rec.who_youll_meet}</p>
       <div style="margin: 0.5rem 0;">
@@ -404,12 +401,17 @@ function generateReportHTML(
       const orgNameDisplay = orgUrl
         ? `<a href="${orgUrl}" target="_blank" rel="noopener noreferrer" style="color: #000; text-decoration: underline;">${rec.org_name}</a>`
         : rec.org_name
+      const calendarUrl = rec.calendar_link
+      const orgLinks = [
+        orgUrl ? `<a href="${orgUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-block; padding: 0.3rem 0.75rem; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.8rem; color: #374151; text-decoration: none;">🌐 Website</a>` : "",
+        calendarUrl ? `<a href="${calendarUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-block; padding: 0.3rem 0.75rem; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.8rem; color: #374151; text-decoration: none;">📅 Events Calendar</a>` : "",
+      ].filter(Boolean).join(" ")
       return `
     <div style="margin-bottom: 2rem; padding: 1rem; border: 1px solid #e5e7eb; border-radius: 0.5rem;">
       <div style="margin-bottom: 0.5rem;">
         <strong style="font-size: 1.125rem;">#${rec.priority_rank} — ${orgNameDisplay}</strong>
       </div>
-      ${orgUrl ? `<p style="margin: 0.25rem 0 0.75rem;"><a href="${orgUrl}" target="_blank" rel="noopener noreferrer" style="color: #555; font-size: 0.875rem;">${orgUrl}</a></p>` : ""}
+      ${orgLinks ? `<div style="margin: 0.5rem 0 0.75rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">${orgLinks}</div>` : ""}
       <p style="color: #666; margin: 0.5rem 0;"><strong>Category:</strong> ${rec.category}</p>
       <p style="color: #666; margin: 0.5rem 0;"><strong>Activity:</strong> ${rec.activity_level}</p>
       <p style="color: #666; margin: 0.5rem 0;"><strong>Why:</strong> ${rec.why_join}</p>
