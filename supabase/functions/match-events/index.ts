@@ -131,15 +131,30 @@ Deno.serve(async (req: Request) => {
     if (orgsText !== null) {
       try {
         const parsedOrgs = parseJsonFromText(orgsText)
-        const orgLookup = new Map(
-          organizations.map((o: Record<string, string>) => [o.name.toLowerCase(), o])
-        )
+
+        const orgList: Record<string, string>[] = organizations ?? []
+
+        function findOrgMatch(aiName: string): Record<string, string> | undefined {
+          if (!aiName) return undefined
+          const needle = aiName.toLowerCase().trim()
+          let best: Record<string, string> | undefined
+
+          for (const o of orgList) {
+            const hay = (o.name ?? "").toLowerCase().trim()
+            if (hay === needle) return o
+            if (!best && (hay.includes(needle) || needle.includes(hay))) {
+              best = o
+            }
+          }
+          return best
+        }
+
         orgRecommendations = parsedOrgs.map((rec: Record<string, unknown>) => {
-          const matched = orgLookup.get((rec.org_name as string)?.toLowerCase())
+          const matched = findOrgMatch(rec.org_name as string)
           return {
             ...rec,
-            home_page: matched?.home_page || rec.home_page || "",
-            calendar_link: matched?.calendar_link || rec.calendar_link || "",
+            home_page: matched?.home_page || "",
+            calendar_link: matched?.calendar_link || "",
           }
         })
       } catch {
