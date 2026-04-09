@@ -130,7 +130,18 @@ Deno.serve(async (req: Request) => {
     let orgRecommendations = null
     if (orgsText !== null) {
       try {
-        orgRecommendations = parseJsonFromText(orgsText)
+        const parsedOrgs = parseJsonFromText(orgsText)
+        const orgLookup = new Map(
+          organizations.map((o: Record<string, string>) => [o.name.toLowerCase(), o])
+        )
+        orgRecommendations = parsedOrgs.map((rec: Record<string, unknown>) => {
+          const matched = orgLookup.get((rec.org_name as string)?.toLowerCase())
+          return {
+            ...rec,
+            home_page: matched?.home_page || rec.home_page || "",
+            calendar_link: matched?.calendar_link || rec.calendar_link || "",
+          }
+        })
       } catch {
         orgRecommendations = null
       }

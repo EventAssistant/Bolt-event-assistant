@@ -637,6 +637,7 @@ export function RecommendationsPage({
         city: o.city,
         description: o.description,
         home_page: o.home_page,
+        calendar_link: o.calendar,
         internal_type: o.internal_type,
         notes: o.notes,
       }))
