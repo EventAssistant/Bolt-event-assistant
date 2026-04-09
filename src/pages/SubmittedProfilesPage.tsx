@@ -313,8 +313,34 @@ export function SubmittedProfilesPage({
     }, 600)
   }
 
-  const handleSaveEdit = (updated: SubmittedProfileRow) => {
-    setProfiles((prev) => prev.map((p) => (p.id === updated.id ? updated : p)))
+  const handleSaveEdit = async (updated: SubmittedProfileRow) => {
+    const { error } = await supabase
+      .from("submitted_profiles")
+      .update({
+        name: updated.name,
+        email: updated.email,
+        title: updated.title,
+        industry: updated.industry,
+        geographic_area: updated.geographic_area,
+        target_prospect_description: updated.target_prospect_description,
+        target_roles: updated.target_roles,
+        target_industries: updated.target_industries,
+        professional_associations: updated.professional_associations,
+        company_sizes: updated.company_sizes,
+        revenue_ranges: updated.revenue_ranges,
+        pain_point_1: updated.pain_point_1,
+        pain_point_2: updated.pain_point_2,
+        pain_point_3: updated.pain_point_3,
+        decision_drivers: updated.decision_drivers,
+        success_metric_1: updated.success_metric_1,
+        success_metric_2: updated.success_metric_2,
+        success_metric_3: updated.success_metric_3,
+      })
+      .eq("id", updated.id)
+
+    if (!error) {
+      setProfiles((prev) => prev.map((p) => (p.id === updated.id ? updated : p)))
+    }
     setEditingProfile(null)
   }
 
