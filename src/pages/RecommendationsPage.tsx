@@ -256,7 +256,7 @@ function OrgRecommendationCard({ rec }: { rec: OrgRecommendation }) {
                   href={home_page}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:underline hover:text-primary transition-colors"
+                  className="underline decoration-primary/40 underline-offset-2 hover:decoration-primary transition-colors hover:text-primary"
                 >
                   {org_name}
                 </a>
@@ -264,34 +264,32 @@ function OrgRecommendationCard({ rec }: { rec: OrgRecommendation }) {
                 org_name
               )}
             </CardTitle>
-            {(home_page || calendar_link) && (
-              <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
-                {home_page && (
-                  <a
-                    href={home_page}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1 text-sm text-primary hover:underline"
-                  >
-                    <Building2 className="h-3.5 w-3.5 shrink-0" />
-                    Website
-                    <ExternalLink className="h-3 w-3 opacity-60" />
-                  </a>
-                )}
-                {calendar_link && (
-                  <a
-                    href={calendar_link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary hover:underline"
-                  >
-                    <Calendar className="h-3.5 w-3.5 shrink-0" />
-                    Events Calendar
-                    <ExternalLink className="h-3 w-3 opacity-60" />
-                  </a>
-                )}
-              </div>
-            )}
+            <div className="mt-2 flex flex-wrap gap-2">
+              {home_page && (
+                <a
+                  href={home_page}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-md border border-primary/25 bg-primary/8 px-2.5 py-1 text-xs font-medium text-primary hover:bg-primary/15 hover:border-primary/40 transition-colors"
+                >
+                  <Building2 className="h-3 w-3 shrink-0" />
+                  Visit Website
+                  <ExternalLink className="h-3 w-3 opacity-70" />
+                </a>
+              )}
+              {calendar_link && (
+                <a
+                  href={calendar_link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-border/80 transition-colors"
+                >
+                  <Calendar className="h-3 w-3 shrink-0" />
+                  Events Calendar
+                  <ExternalLink className="h-3 w-3 opacity-60" />
+                </a>
+              )}
+            </div>
           </div>
         </div>
       </CardHeader>
