@@ -109,6 +109,8 @@ Deno.serve(async (req: Request) => {
                 city: o.city,
                 description: o.description,
                 home_page: o.home_page,
+                calendar_link: o.calendar_link || o.calendar || "",
+                activity: o.activity || "",
                 internal_type: o.internal_type,
                 notes: o.notes,
               })),
@@ -154,7 +156,7 @@ Deno.serve(async (req: Request) => {
           return {
             ...rec,
             home_page: matched?.home_page || "",
-            calendar_link: matched?.calendar_link || "",
+            calendar_link: matched?.calendar || matched?.calendar_link || "",
           }
         })
       } catch {
