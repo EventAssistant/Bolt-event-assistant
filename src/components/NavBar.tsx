@@ -28,6 +28,7 @@ import {
 
 const navItems = [
   { path: "/upload", label: "CSV Upload", icon: Upload },
+  { path: "/organizations", label: "Organizations", icon: Building2 },
   { path: "/profile", label: "Client Profile", icon: UserCircle },
   { path: "/recommendations", label: "Recommendations", icon: Sparkles },
   { path: "/submissions", label: "Submitted Profiles", icon: Inbox },
@@ -104,12 +105,22 @@ export function NavBar() {
           )}
 
           {organizationsCount > 0 && (
-            <div className="flex items-center gap-1.5">
-              <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
-              <Badge variant="secondary" className="text-xs px-2 py-0.5 font-medium">
-                {organizationsCount} org{organizationsCount !== 1 ? "s" : ""}
+            <NavLink
+              to="/organizations"
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center gap-1.5 rounded-md px-3 py-1.5 transition-all duration-150",
+                  isActive
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                )
+              }
+            >
+              <Building2 className="h-3.5 w-3.5" />
+              <Badge variant="secondary" className="text-xs px-1.5 py-0 font-medium">
+                {organizationsCount}
               </Badge>
-            </div>
+            </NavLink>
           )}
 
           <EmailSettingsModal />

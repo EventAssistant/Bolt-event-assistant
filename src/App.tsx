@@ -38,6 +38,7 @@ export function App() {
                 <Route path="/profile" element={<ProtectedPages.Profile />} />
                 <Route path="/recommendations" element={<ProtectedPages.Recommendations />} />
                 <Route path="/submissions" element={<ProtectedPages.Submissions />} />
+                <Route path="/organizations" element={<ProtectedPages.Organizations />} />
                 <Route path="/audit" element={<AuditPage />} />
                 <Route path="*" element={<Navigate to="/upload" replace />} />
               </Route>

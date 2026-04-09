@@ -3,6 +3,7 @@ import { UploadPage } from "@/pages/UploadPage"
 import { ClientProfilePage } from "@/pages/ClientProfilePage"
 import { RecommendationsPage } from "@/pages/RecommendationsPage"
 import { SubmittedProfilesPage } from "@/pages/SubmittedProfilesPage"
+import { OrganizationsPage } from "@/pages/OrganizationsPage"
 
 function Upload() {
   const { setEvents, setOrganizations } = useSession()
@@ -24,9 +25,14 @@ function Submissions() {
   return <SubmittedProfilesPage onLoadProfile={setActiveProfile} />
 }
 
+function Organizations() {
+  return <OrganizationsPage />
+}
+
 export const ProtectedPages = {
   Upload,
   Profile,
   Recommendations,
   Submissions,
+  Organizations,
 }
