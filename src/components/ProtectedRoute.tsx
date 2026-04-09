@@ -1,3 +1,4 @@
+import { useRef } from "react"
 import { Navigate } from "react-router-dom"
 import { useAuth } from "@/contexts/AuthContext"
 import { Spinner } from "@/components/ui/spinner"
@@ -8,8 +9,13 @@ interface ProtectedRouteProps {
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { user, loading } = useAuth()
+  const wasAuthenticatedRef = useRef(false)
 
-  if (loading) {
+  if (user) {
+    wasAuthenticatedRef.current = true
+  }
+
+  if (loading && !wasAuthenticatedRef.current) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Spinner />
@@ -17,7 +23,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     )
   }
 
-  if (!user) {
+  if (!user && !wasAuthenticatedRef.current) {
     return <Navigate to="/login" replace />
   }
 

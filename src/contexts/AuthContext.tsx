@@ -16,18 +16,36 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
-  const userIdRef = useRef<string | null>(null)
+  const initializedRef = useRef(false)
 
   useEffect(() => {
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      const newUserId = session?.user?.id ?? null
-      if (newUserId !== userIdRef.current) {
-        userIdRef.current = newUserId
-        setUser(session?.user ?? null)
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "TOKEN_REFRESHED") {
+        return
       }
-      setLoading(false)
+
+      const newUser = session?.user ?? null
+
+      if (!initializedRef.current) {
+        initializedRef.current = true
+        setUser(newUser)
+        setLoading(false)
+        return
+      }
+
+      if (event === "SIGNED_OUT") {
+        setUser(null)
+        return
+      }
+
+      if (event === "SIGNED_IN" || event === "USER_UPDATED") {
+        setUser((prev) => {
+          if (prev?.id === newUser?.id) return prev
+          return newUser
+        })
+      }
     })
 
     return () => subscription.unsubscribe()
