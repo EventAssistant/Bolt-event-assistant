@@ -27,6 +27,7 @@ import { supabase, type SubmittedProfileRow } from "@/lib/supabase"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import type { ClientProfile } from "@/types"
 import { EditProfileModal } from "@/components/EditProfileModal"
+import { SendReviewButton } from "@/components/SendReviewButton"
 import { toast } from "sonner"
 
 type FilterTab = "all" | "pending" | "sent-this-week"
@@ -129,10 +130,12 @@ function ProfileCard({
   profile,
   onLoad,
   onEdit,
+  onSendReview,
 }: {
   profile: SubmittedProfileRow
   onLoad: () => void
   onEdit: () => void
+  onSendReview: (profileId: string, sentAt: string) => void
 }) {
   const submittedDate = new Date(profile.submitted_at)
   const formattedDate = submittedDate.toLocaleDateString("en-US", {
@@ -255,16 +258,19 @@ function ProfileCard({
 
         <Separator />
 
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={onEdit} className="gap-1.5 shrink-0">
-            <Pencil className="h-3.5 w-3.5" />
-            Edit
-          </Button>
-          <Button onClick={onLoad} className={`flex-1 gap-2 ${isSent ? "bg-chart-4/15 text-chart-4 border border-chart-4/30 hover:bg-chart-4/25" : ""}`} variant={isSent ? "outline" : "default"} size="sm">
-            <CheckCircle2 className="h-4 w-4" />
-            {isSent ? "Load Again" : "Load into Client Profile"}
-            <ChevronRight className="h-3.5 w-3.5 ml-auto" />
-          </Button>
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={onEdit} className="gap-1.5 shrink-0">
+              <Pencil className="h-3.5 w-3.5" />
+              Edit
+            </Button>
+            <Button onClick={onLoad} className={`flex-1 gap-2 ${isSent ? "bg-chart-4/15 text-chart-4 border border-chart-4/30 hover:bg-chart-4/25" : ""}`} variant={isSent ? "outline" : "default"} size="sm">
+              <CheckCircle2 className="h-4 w-4" />
+              {isSent ? "Load Again" : "Load into Client Profile"}
+              <ChevronRight className="h-3.5 w-3.5 ml-auto" />
+            </Button>
+          </div>
+          <SendReviewButton profile={profile} onReviewSent={onSendReview} />
         </div>
       </CardContent>
     </Card>
@@ -388,6 +394,12 @@ export function SubmittedProfilesPage({
     setTimeout(() => {
       navigate("/recommendations")
     }, 400)
+  }
+
+  const handleReviewSent = (profileId: string, sentAt: string) => {
+    setProfiles((prev) =>
+      prev.map((p) => (p.id === profileId ? { ...p, last_review_sent_at: sentAt } : p))
+    )
   }
 
   const handleSaveEdit = async (updated: SubmittedProfileRow) => {
@@ -553,6 +565,7 @@ export function SubmittedProfilesPage({
                     profile={profile}
                     onLoad={() => handleLoad(profile)}
                     onEdit={() => setEditingProfile(profile)}
+                    onSendReview={handleReviewSent}
                   />
                 </div>
               ))}

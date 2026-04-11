@@ -27,4 +27,5 @@ export interface SubmittedProfileRow {
   geographic_area: string
   submitted_at: string
   last_report_sent_at: string | null
+  last_review_sent_at: string | null
 }
