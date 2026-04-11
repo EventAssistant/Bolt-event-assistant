@@ -46,7 +46,6 @@ import {
 
 const navItems = [
   { path: "/upload", label: "CSV Upload", icon: Upload },
-  { path: "/organizations", label: "Organizations", icon: Building2 },
   { path: "/profile", label: "Client Profile", icon: UserCircle },
   { path: "/recommendations", label: "Recommendations", icon: Sparkles },
   { path: "/submissions", label: "Submitted Profiles", icon: Inbox },
