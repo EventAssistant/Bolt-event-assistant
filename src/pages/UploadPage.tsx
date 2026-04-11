@@ -206,7 +206,7 @@ export function UploadPage({
   const [uploadedFileName, setUploadedFileName] = useState("")
   const [parseResult, setParseResult] = useState<ParseResult | null>(null)
   const [showTable, setShowTable] = useState(true)
-  const [showColumnsInfo, setShowColumnsInfo] = useState(true)
+  const [showColumnsInfo, setShowColumnsInfo] = useState(false)
   const [showWarnings, setShowWarnings] = useState(false)
   const [search, setSearch] = useState("")
   const [filterEventType, setFilterEventType] = useState("all")
