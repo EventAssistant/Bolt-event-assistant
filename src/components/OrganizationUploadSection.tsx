@@ -99,77 +99,79 @@ function TruncatedDescription({ text }: { text: string }) {
 
 function OrgTable({ organizations }: { organizations: Organization[] }) {
   return (
-    <div className="w-full overflow-x-auto rounded-lg border border-border">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b border-border bg-muted/50">
-            <th className="px-4 py-3 text-left font-semibold text-muted-foreground whitespace-nowrap">#</th>
-            <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Name</th>
-            <th className="px-4 py-3 text-left font-semibold text-muted-foreground whitespace-nowrap">Category</th>
-            <th className="px-4 py-3 text-left font-semibold text-muted-foreground whitespace-nowrap">Activity</th>
-            <th className="px-4 py-3 text-left font-semibold text-muted-foreground whitespace-nowrap">Status</th>
-            <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Description</th>
-          </tr>
-        </thead>
-        <tbody>
-          {organizations.map((org, index) => (
-            <tr
-              key={`${org.name}-${index}`}
-              className="border-b border-border/50 transition-colors hover:bg-muted/30 last:border-0"
-            >
-              <td className="px-4 py-3 text-muted-foreground">{index + 1}</td>
-              <td className="px-4 py-3 max-w-[200px]">
-                {org.home_page ? (
-                  <a
-                    href={org.home_page}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-medium text-primary hover:underline flex items-center gap-1"
-                  >
-                    <span className="truncate">{org.name || "—"}</span>
-                    <ExternalLink className="h-3 w-3 shrink-0 opacity-60" />
-                  </a>
-                ) : (
-                  <span className="font-medium text-foreground">{org.name || "—"}</span>
-                )}
-                {org.city && (
-                  <p className="text-xs text-muted-foreground/70 mt-0.5">{org.city}</p>
-                )}
-              </td>
-              <td className="px-4 py-3">
-                {org.category ? (
-                  <Badge variant="secondary" className="whitespace-nowrap text-xs">
-                    {org.category}
-                  </Badge>
-                ) : (
-                  <span className="text-muted-foreground/50">—</span>
-                )}
-              </td>
-              <td className="px-4 py-3">
-                {org.activity ? (
-                  <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${getActivityColor(org.activity)}`}>
-                    {org.activity}
-                  </span>
-                ) : (
-                  <span className="text-muted-foreground/50">—</span>
-                )}
-              </td>
-              <td className="px-4 py-3">
-                {org.status ? (
-                  <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${getStatusColor(org.status)}`}>
-                    {org.status}
-                  </span>
-                ) : (
-                  <span className="text-muted-foreground/50">—</span>
-                )}
-              </td>
-              <td className="px-4 py-3 max-w-[300px]">
-                <TruncatedDescription text={org.description} />
-              </td>
+    <div className="rounded-lg border border-border overflow-hidden">
+      <div className="max-h-[600px] overflow-y-auto overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="sticky top-0">
+            <tr className="border-b border-border bg-muted/50">
+              <th className="px-4 py-3 text-left font-semibold text-muted-foreground whitespace-nowrap min-w-[40px]">#</th>
+              <th className="px-4 py-3 text-left font-semibold text-muted-foreground min-w-[180px]">Name</th>
+              <th className="px-4 py-3 text-left font-semibold text-muted-foreground whitespace-nowrap min-w-[120px]">Category</th>
+              <th className="px-4 py-3 text-left font-semibold text-muted-foreground whitespace-nowrap min-w-[110px]">Activity</th>
+              <th className="px-4 py-3 text-left font-semibold text-muted-foreground whitespace-nowrap min-w-[100px]">Status</th>
+              <th className="px-4 py-3 text-left font-semibold text-muted-foreground min-w-[200px]">Description</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {organizations.map((org, index) => (
+              <tr
+                key={`${org.name}-${index}`}
+                className="border-b border-border/50 transition-colors hover:bg-muted/30 last:border-0"
+              >
+                <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{index + 1}</td>
+                <td className="px-4 py-3 min-w-[180px]">
+                  {org.home_page ? (
+                    <a
+                      href={org.home_page}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-medium text-primary hover:underline flex items-center gap-1"
+                    >
+                      <span className="truncate">{org.name || "—"}</span>
+                      <ExternalLink className="h-3 w-3 shrink-0 opacity-60" />
+                    </a>
+                  ) : (
+                    <span className="font-medium text-foreground">{org.name || "—"}</span>
+                  )}
+                  {org.city && (
+                    <p className="text-xs text-muted-foreground/70 mt-0.5">{org.city}</p>
+                  )}
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap min-w-[120px]">
+                  {org.category ? (
+                    <Badge variant="secondary" className="whitespace-nowrap text-xs">
+                      {org.category}
+                    </Badge>
+                  ) : (
+                    <span className="text-muted-foreground/50">—</span>
+                  )}
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap min-w-[110px]">
+                  {org.activity ? (
+                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${getActivityColor(org.activity)}`}>
+                      {org.activity}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground/50">—</span>
+                  )}
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap min-w-[100px]">
+                  {org.status ? (
+                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${getStatusColor(org.status)}`}>
+                      {org.status}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground/50">—</span>
+                  )}
+                </td>
+                <td className="px-4 py-3 min-w-[200px]">
+                  <TruncatedDescription text={org.description} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }

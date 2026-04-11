@@ -78,82 +78,84 @@ function formatTime(timeStr: string): string {
 
 function EventTable({ events }: { events: Event[] }) {
   return (
-    <div className="w-full overflow-x-auto rounded-lg border border-border">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b border-border bg-muted/50">
-            <th className="px-4 py-3 text-left font-semibold text-muted-foreground whitespace-nowrap">#</th>
-            <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Event Name</th>
-            <th className="px-4 py-3 text-left font-semibold text-muted-foreground whitespace-nowrap">Organization</th>
-            <th className="px-4 py-3 text-left font-semibold text-muted-foreground whitespace-nowrap">Date</th>
-            <th className="px-4 py-3 text-left font-semibold text-muted-foreground whitespace-nowrap">Time</th>
-            <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Type</th>
-            <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Cost</th>
-            <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Format</th>
-            <th className="px-4 py-3 text-left font-semibold text-muted-foreground">City</th>
-          </tr>
-        </thead>
-        <tbody>
-          {events.map((event, index) => (
-            <tr
-              key={event.id}
-              className="border-b border-border/50 transition-colors hover:bg-muted/30 last:border-0"
-            >
-              <td className="px-4 py-3 text-muted-foreground">{index + 1}</td>
-              <td className="px-4 py-3 max-w-[240px]">
-                {event.website ? (
-                  <a
-                    href={event.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-medium text-primary hover:underline flex items-center gap-1"
-                  >
-                    <span className="truncate">{event.name || "—"}</span>
-                    <ExternalLink className="h-3 w-3 shrink-0 opacity-60" />
-                  </a>
-                ) : (
-                  <span className="font-medium text-foreground">{event.name || "—"}</span>
-                )}
-                {event.subcategory.length > 0 && (
-                  <div className="mt-1 flex flex-wrap gap-1">
-                    {event.subcategory.slice(0, 2).map((s) => (
-                      <span key={s} className="text-xs text-muted-foreground/70 bg-muted/60 rounded px-1.5 py-0.5">
-                        {s}
-                      </span>
-                    ))}
-                    {event.subcategory.length > 2 && (
-                      <span className="text-xs text-muted-foreground/50">+{event.subcategory.length - 2}</span>
-                    )}
-                  </div>
-                )}
-              </td>
-              <td className="px-4 py-3 text-muted-foreground max-w-[160px] truncate">
-                {event.group_name || "—"}
-              </td>
-              <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{formatDate(event.start_date)}</td>
-              <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{formatTime(event.start_time)}</td>
-              <td className="px-4 py-3">
-                <Badge variant="secondary" className="whitespace-nowrap text-xs">
-                  {event.event_type || "—"}
-                </Badge>
-              </td>
-              <td className="px-4 py-3">
-                <span
-                  className={
-                    event.paid === "Free" ? "text-chart-4 font-medium text-sm" : "text-foreground font-medium text-sm"
-                  }
-                >
-                  {event.paid || "—"}
-                </span>
-              </td>
-              <td className="px-4 py-3 text-muted-foreground whitespace-nowrap text-xs">
-                {event.participation || "—"}
-              </td>
-              <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{event.event_city || "—"}</td>
+    <div className="rounded-lg border border-border overflow-hidden">
+      <div className="max-h-[600px] overflow-y-auto overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="sticky top-0">
+            <tr className="border-b border-border bg-muted/50">
+              <th className="px-4 py-3 text-left font-semibold text-muted-foreground whitespace-nowrap min-w-[40px]">#</th>
+              <th className="px-4 py-3 text-left font-semibold text-muted-foreground min-w-[180px]">Event Name</th>
+              <th className="px-4 py-3 text-left font-semibold text-muted-foreground whitespace-nowrap min-w-[120px]">Organization</th>
+              <th className="px-4 py-3 text-left font-semibold text-muted-foreground whitespace-nowrap min-w-[100px]">Date</th>
+              <th className="px-4 py-3 text-left font-semibold text-muted-foreground whitespace-nowrap min-w-[100px]">Time</th>
+              <th className="px-4 py-3 text-left font-semibold text-muted-foreground whitespace-nowrap min-w-[110px]">Type</th>
+              <th className="px-4 py-3 text-left font-semibold text-muted-foreground whitespace-nowrap min-w-[80px]">Cost</th>
+              <th className="px-4 py-3 text-left font-semibold text-muted-foreground whitespace-nowrap min-w-[110px]">Format</th>
+              <th className="px-4 py-3 text-left font-semibold text-muted-foreground whitespace-nowrap min-w-[100px]">City</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {events.map((event, index) => (
+              <tr
+                key={event.id}
+                className="border-b border-border/50 transition-colors hover:bg-muted/30 last:border-0"
+              >
+                <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{index + 1}</td>
+                <td className="px-4 py-3 min-w-[180px]">
+                  {event.website ? (
+                    <a
+                      href={event.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-medium text-primary hover:underline flex items-center gap-1"
+                    >
+                      <span className="truncate">{event.name || "—"}</span>
+                      <ExternalLink className="h-3 w-3 shrink-0 opacity-60" />
+                    </a>
+                  ) : (
+                    <span className="font-medium text-foreground">{event.name || "—"}</span>
+                  )}
+                  {event.subcategory.length > 0 && (
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {event.subcategory.slice(0, 2).map((s) => (
+                        <span key={s} className="text-xs text-muted-foreground/70 bg-muted/60 rounded px-1.5 py-0.5">
+                          {s}
+                        </span>
+                      ))}
+                      {event.subcategory.length > 2 && (
+                        <span className="text-xs text-muted-foreground/50">+{event.subcategory.length - 2}</span>
+                      )}
+                    </div>
+                  )}
+                </td>
+                <td className="px-4 py-3 text-muted-foreground whitespace-nowrap truncate min-w-[120px]">
+                  {event.group_name || "—"}
+                </td>
+                <td className="px-4 py-3 text-muted-foreground whitespace-nowrap min-w-[100px]">{formatDate(event.start_date)}</td>
+                <td className="px-4 py-3 text-muted-foreground whitespace-nowrap min-w-[100px]">{formatTime(event.start_time)}</td>
+                <td className="px-4 py-3 whitespace-nowrap min-w-[110px]">
+                  <Badge variant="secondary" className="whitespace-nowrap text-xs">
+                    {event.event_type || "—"}
+                  </Badge>
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap min-w-[80px]">
+                  <span
+                    className={
+                      event.paid === "Free" ? "text-chart-4 font-medium text-sm" : "text-foreground font-medium text-sm"
+                    }
+                  >
+                    {event.paid || "—"}
+                  </span>
+                </td>
+                <td className="px-4 py-3 text-muted-foreground whitespace-nowrap text-xs min-w-[110px]">
+                  {event.participation || "—"}
+                </td>
+                <td className="px-4 py-3 text-muted-foreground whitespace-nowrap min-w-[100px]">{event.event_city || "—"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }
