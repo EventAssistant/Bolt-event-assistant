@@ -70,7 +70,7 @@ export function EmailSettingsModal({ open: controlledOpen, onOpenChange }: Email
             EmailJS Settings
           </DialogTitle>
           <DialogDescription>
-            Configure your EmailJS credentials to send reports directly from the browser. Settings are stored for this session only.
+            Configure your EmailJS credentials to send reports directly from the browser. Settings are saved and will persist across sessions.
           </DialogDescription>
         </DialogHeader>
 

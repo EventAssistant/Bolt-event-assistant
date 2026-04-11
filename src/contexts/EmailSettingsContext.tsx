@@ -1,6 +1,6 @@
 import { createContext, useContext, useState } from "react"
 
-const SESSION_KEY = "emailjs_settings"
+const STORAGE_KEY = "emailjs_settings"
 
 export interface EmailSettings {
   publicKey: string
@@ -16,9 +16,9 @@ const defaultSettings: EmailSettings = {
   senderName: "",
 }
 
-function loadFromSession(): EmailSettings {
+function loadFromStorage(): EmailSettings {
   try {
-    const raw = sessionStorage.getItem(SESSION_KEY)
+    const raw = localStorage.getItem(STORAGE_KEY)
     if (raw) return { ...defaultSettings, ...JSON.parse(raw) }
   } catch {}
   return defaultSettings
@@ -33,12 +33,12 @@ interface EmailSettingsContextType {
 const EmailSettingsContext = createContext<EmailSettingsContextType | null>(null)
 
 export function EmailSettingsProvider({ children }: { children: React.ReactNode }) {
-  const [settings, setSettings] = useState<EmailSettings>(loadFromSession)
+  const [settings, setSettings] = useState<EmailSettings>(loadFromStorage)
 
   const updateSettings = (updated: EmailSettings) => {
     setSettings(updated)
     try {
-      sessionStorage.setItem(SESSION_KEY, JSON.stringify(updated))
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
     } catch {}
   }
 
