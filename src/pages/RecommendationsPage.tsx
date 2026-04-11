@@ -12,11 +12,14 @@ import {
   TrendingUp,
   RefreshCw,
   ChevronRight,
+  ChevronLeft,
   Building2,
   Activity,
   Download,
   Mail,
   Trash2,
+  UserCheck,
+  Briefcase,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -30,6 +33,7 @@ import { generateEmailCalendarBlock } from "@/utils/calendarUtils"
 import { EmailReportButton } from "@/components/EmailReportButton"
 import { EmailSettingsModal } from "@/components/EmailSettingsModal"
 import { supabase } from "@/lib/supabase"
+import { Link } from "react-router-dom"
 
 function RankBadge({ rank }: { rank: number }) {
   const label = rank === 1 ? "Top Pick" : rank === 2 ? "2nd Choice" : rank === 3 ? "3rd Choice" : `#${rank}`
@@ -732,6 +736,67 @@ export function RecommendationsPage({
         )}
         <EmailSettingsModal open={emailSettingsOpen} onOpenChange={setEmailSettingsOpen} />
       </div>
+
+      {activeProfileId && !hasRun && !loading && (
+        <div className="rounded-xl border border-chart-4/30 bg-chart-4/5 px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="flex items-start gap-3 flex-1 min-w-0">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-chart-4/15 border border-chart-4/25 mt-0.5">
+              <UserCheck className="h-4 w-4 text-chart-4" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-foreground">
+                Client profile loaded:{" "}
+                <span className="text-chart-4">{profile.name || "Unnamed Client"}</span>
+                {" "}&mdash; ready to run matching
+              </p>
+              <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
+                {profile.title && (
+                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Briefcase className="h-3 w-3 shrink-0" />
+                    {profile.title}
+                    {profile.industry ? ` · ${profile.industry}` : ""}
+                  </span>
+                )}
+                {profile.targetRoles.length > 0 && (
+                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Users className="h-3 w-3 shrink-0" />
+                    Targeting:{" "}
+                    <span className="font-medium text-foreground">
+                      {profile.targetRoles.slice(0, 2).join(", ")}
+                      {profile.targetRoles.length > 2 ? ` +${profile.targetRoles.length - 2}` : ""}
+                    </span>
+                  </span>
+                )}
+                {profile.targetIndustries.length > 0 && (
+                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Building2 className="h-3 w-3 shrink-0" />
+                    {profile.targetIndustries.slice(0, 2).join(", ")}
+                    {profile.targetIndustries.length > 2 ? ` +${profile.targetIndustries.length - 2}` : ""}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Link
+              to="/submissions"
+              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ChevronLeft className="h-3.5 w-3.5" />
+              Back to Profiles
+            </Link>
+            <Button
+              size="sm"
+              className="gap-2"
+              onClick={handleGenerateRecommendations}
+              disabled={loading || events.length === 0}
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              Run Matching
+            </Button>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">

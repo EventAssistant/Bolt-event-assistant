@@ -326,8 +326,8 @@ export function SubmittedProfilesPage({
     onLoadProfile(toClientProfile(profile), profile.id)
     setLoadedId(profile.id)
     setTimeout(() => {
-      navigate("/profile")
-    }, 600)
+      navigate("/recommendations")
+    }, 400)
   }
 
   const handleSaveEdit = async (updated: SubmittedProfileRow) => {
@@ -429,7 +429,7 @@ export function SubmittedProfilesPage({
                   <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-primary/10 border border-primary/30">
                     <div className="flex items-center gap-2 text-primary font-medium text-sm">
                       <CheckCircle2 className="h-5 w-5" />
-                      Loaded — redirecting...
+                      Loaded — going to Recommendations...
                     </div>
                   </div>
                 )}
