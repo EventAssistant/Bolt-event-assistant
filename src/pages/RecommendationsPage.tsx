@@ -17,37 +17,19 @@ import {
   Activity,
   Download,
   Mail,
+  Trash2,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import type { ClientProfile, Event, Organization } from "@/types"
+import type { AIRecommendation, OrgRecommendation } from "@/contexts/SessionContext"
+import { useSession } from "@/contexts/SessionContext"
 import { AddToCalendarButton } from "@/components/AddToCalendarButton"
 import { buildGoogleCalendarUrl } from "@/utils/calendarUtils"
 import { EmailReportButton } from "@/components/EmailReportButton"
 import { EmailSettingsModal } from "@/components/EmailSettingsModal"
-
-interface AIRecommendation {
-  event_name: string
-  why_this_event: string
-  who_youll_meet: string
-  what_to_do: string[]
-  priority_rank: number
-  matched_event?: Event
-}
-
-interface OrgRecommendation {
-  org_name: string
-  category: string
-  home_page: string
-  calendar_link: string
-  why_join: string
-  who_youll_meet: string
-  how_to_engage: string[]
-  activity_level: string
-  priority_rank: number
-}
 
 function RankBadge({ rank }: { rank: number }) {
   const label = rank === 1 ? "Top Pick" : rank === 2 ? "2nd Choice" : rank === 3 ? "3rd Choice" : `#${rank}`
@@ -576,12 +558,12 @@ export function RecommendationsPage({
   events: Event[]
   organizations: Organization[]
 }) {
-  const [recommendations, setRecommendations] = useState<AIRecommendation[]>([])
-  const [orgRecommendations, setOrgRecommendations] = useState<OrgRecommendation[]>([])
+  const { recommendations, orgRecommendations, setRecommendations, setOrgRecommendations, clearRecommendations } = useSession()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [hasRun, setHasRun] = useState(false)
   const [emailSettingsOpen, setEmailSettingsOpen] = useState(false)
+
+  const hasRun = recommendations.length > 0 || orgRecommendations.length > 0
 
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
   const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -684,8 +666,6 @@ export function RecommendationsPage({
       })
       orgRecs.sort((a, b) => a.priority_rank - b.priority_rank)
       setOrgRecommendations(orgRecs)
-
-      setHasRun(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong")
     } finally {
@@ -706,6 +686,16 @@ export function RecommendationsPage({
         </div>
         {hasRun && (
           <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearRecommendations}
+              disabled={loading}
+              className="gap-1.5 text-muted-foreground hover:text-destructive"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              Clear
+            </Button>
             <Button
               variant="outline"
               className="gap-2"

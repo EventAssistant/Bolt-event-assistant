@@ -5,6 +5,29 @@ import { mockClientProfile } from "@/data/mockEvents"
 const PROFILE_STORAGE_KEY = "active_client_profile"
 const EVENTS_STORAGE_KEY = "uploaded_events"
 const ORGANIZATIONS_STORAGE_KEY = "uploaded_organizations"
+const RECOMMENDATIONS_STORAGE_KEY = "ai_recommendations"
+const ORG_RECOMMENDATIONS_STORAGE_KEY = "ai_org_recommendations"
+
+export interface AIRecommendation {
+  event_name: string
+  why_this_event: string
+  who_youll_meet: string
+  what_to_do: string[]
+  priority_rank: number
+  matched_event?: Event
+}
+
+export interface OrgRecommendation {
+  org_name: string
+  category: string
+  home_page: string
+  calendar_link: string
+  why_join: string
+  who_youll_meet: string
+  how_to_engage: string[]
+  activity_level: string
+  priority_rank: number
+}
 
 function loadStoredProfile(): ClientProfile {
   try {
@@ -45,13 +68,44 @@ function loadStoredOrganizations(): Organization[] {
   return []
 }
 
+function loadStoredRecommendations(): AIRecommendation[] {
+  try {
+    const raw = localStorage.getItem(RECOMMENDATIONS_STORAGE_KEY)
+    if (raw) {
+      const parsed = JSON.parse(raw) as AIRecommendation[]
+      if (Array.isArray(parsed)) return parsed
+    }
+  } catch {
+    // ignore
+  }
+  return []
+}
+
+function loadStoredOrgRecommendations(): OrgRecommendation[] {
+  try {
+    const raw = localStorage.getItem(ORG_RECOMMENDATIONS_STORAGE_KEY)
+    if (raw) {
+      const parsed = JSON.parse(raw) as OrgRecommendation[]
+      if (Array.isArray(parsed)) return parsed
+    }
+  } catch {
+    // ignore
+  }
+  return []
+}
+
 interface SessionContextType {
   events: Event[]
   organizations: Organization[]
   activeProfile: ClientProfile
+  recommendations: AIRecommendation[]
+  orgRecommendations: OrgRecommendation[]
   setEvents: (events: Event[]) => void
   setOrganizations: (organizations: Organization[]) => void
   setActiveProfile: (profile: ClientProfile) => void
+  setRecommendations: (recs: AIRecommendation[]) => void
+  setOrgRecommendations: (recs: OrgRecommendation[]) => void
+  clearRecommendations: () => void
   clearAll: () => void
 }
 
@@ -61,6 +115,8 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [events, setEventsState] = useState<Event[]>(loadStoredEvents)
   const [organizations, setOrganizationsState] = useState<Organization[]>(loadStoredOrganizations)
   const [activeProfile, setActiveProfileState] = useState<ClientProfile>(loadStoredProfile)
+  const [recommendations, setRecommendationsState] = useState<AIRecommendation[]>(loadStoredRecommendations)
+  const [orgRecommendations, setOrgRecommendationsState] = useState<OrgRecommendation[]>(loadStoredOrgRecommendations)
 
   const setEvents = (events: Event[]) => {
     setEventsState(events)
@@ -89,6 +145,29 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  const setRecommendations = (recs: AIRecommendation[]) => {
+    setRecommendationsState(recs)
+    try {
+      localStorage.setItem(RECOMMENDATIONS_STORAGE_KEY, JSON.stringify(recs))
+    } catch {
+      // ignore
+    }
+  }
+
+  const setOrgRecommendations = (recs: OrgRecommendation[]) => {
+    setOrgRecommendationsState(recs)
+    try {
+      localStorage.setItem(ORG_RECOMMENDATIONS_STORAGE_KEY, JSON.stringify(recs))
+    } catch {
+      // ignore
+    }
+  }
+
+  const clearRecommendations = () => {
+    setRecommendations([])
+    setOrgRecommendations([])
+  }
+
   useEffect(() => {
     try {
       localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(activeProfile))
@@ -101,10 +180,25 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     setEvents([])
     setOrganizations([])
     setActiveProfile(mockClientProfile)
+    setRecommendations([])
+    setOrgRecommendations([])
   }
 
   return (
-    <SessionContext.Provider value={{ events, organizations, activeProfile, setEvents, setOrganizations, setActiveProfile, clearAll }}>
+    <SessionContext.Provider value={{
+      events,
+      organizations,
+      activeProfile,
+      recommendations,
+      orgRecommendations,
+      setEvents,
+      setOrganizations,
+      setActiveProfile,
+      setRecommendations,
+      setOrgRecommendations,
+      clearRecommendations,
+      clearAll,
+    }}>
       {children}
     </SessionContext.Provider>
   )
