@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
+import { createClient } from "npm:@supabase/supabase-js@2.102.1"
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -43,6 +44,30 @@ For each recommended organization return as JSON:
 - priority_rank (1 through 5)
 
 Return only valid JSON. No explanation outside the JSON.`
+
+async function generateCacheKey(profile: Record<string, unknown>, events: unknown[], organizations: unknown[]): Promise<string> {
+  const payload = JSON.stringify({
+    profile,
+    events_count: events.length,
+    events_hash: events.map((e: Record<string, unknown>) => `${e.name}|${e.start_date}`).sort().join(","),
+    orgs_count: organizations.length,
+    orgs_hash: organizations.map((o: Record<string, unknown>) => `${o.name}|${o.category}`).sort().join(","),
+  })
+
+  const encoder = new TextEncoder()
+  const data = encoder.encode(payload)
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data)
+  const hashArray = Array.from(new Uint8Array(hashBuffer))
+  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("")
+}
+
+function getSupabaseAdmin() {
+  const url = Deno.env.get("SUPABASE_URL")!
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+  return createClient(url, serviceKey)
+}
+
+const CACHE_TTL_DAYS = 7
 
 async function callClaude(apiKey: string, systemPrompt: string, userMessage: string) {
   const response = await fetch("https://api.anthropic.com/v1/messages", {
@@ -93,17 +118,38 @@ Deno.serve(async (req: Request) => {
       )
     }
 
+    const orgs = organizations ?? []
+    const supabaseAdmin = getSupabaseAdmin()
+    const cacheKey = await generateCacheKey(profile, events, orgs)
+
+    const cutoff = new Date()
+    cutoff.setDate(cutoff.getDate() - CACHE_TTL_DAYS)
+
+    const { data: cached } = await supabaseAdmin
+      .from("recommendation_cache")
+      .select("result, created_at")
+      .eq("cache_key", cacheKey)
+      .gte("created_at", cutoff.toISOString())
+      .maybeSingle()
+
+    if (cached) {
+      return new Response(
+        JSON.stringify({ ...cached.result, cached: true }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      )
+    }
+
     const eventsUserMessage = JSON.stringify({ persona_profile: profile, events }, null, 2)
 
     const [eventsText, orgsText] = await Promise.all([
       callClaude(apiKey, EVENTS_SYSTEM_PROMPT, eventsUserMessage),
-      organizations && organizations.length > 0
+      orgs.length > 0
         ? callClaude(
             apiKey,
             ORGS_SYSTEM_PROMPT,
             JSON.stringify({
               persona_profile: profile,
-              organizations: organizations.map((o: Record<string, string>) => ({
+              organizations: orgs.map((o: Record<string, string>) => ({
                 name: o.name,
                 category: o.category,
                 city: o.city,
@@ -134,7 +180,7 @@ Deno.serve(async (req: Request) => {
       try {
         const parsedOrgs = parseJsonFromText(orgsText)
 
-        const orgList: Record<string, string>[] = organizations ?? []
+        const orgList: Record<string, string>[] = orgs
 
         function findOrgMatch(aiName: string): Record<string, string> | undefined {
           if (!aiName) return undefined
@@ -164,8 +210,20 @@ Deno.serve(async (req: Request) => {
       }
     }
 
+    const result = { recommendations, org_recommendations: orgRecommendations }
+
+    const profileId = profile?.id || null
+    await supabaseAdmin
+      .from("recommendation_cache")
+      .upsert({
+        cache_key: cacheKey,
+        result,
+        client_profile_id: profileId,
+        created_at: new Date().toISOString(),
+      }, { onConflict: "cache_key" })
+
     return new Response(
-      JSON.stringify({ recommendations, org_recommendations: orgRecommendations }),
+      JSON.stringify(result),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     )
   } catch (err) {

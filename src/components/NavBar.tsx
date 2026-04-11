@@ -58,10 +58,16 @@ export function NavBar() {
   const handleClearAll = async () => {
     clearAll()
     navigate("/upload")
-    await supabase
-      .from("submitted_profiles")
-      .update({ last_report_sent_at: null })
-      .neq("id", "00000000-0000-0000-0000-000000000000")
+    await Promise.all([
+      supabase
+        .from("submitted_profiles")
+        .update({ last_report_sent_at: null })
+        .neq("id", "00000000-0000-0000-0000-000000000000"),
+      supabase
+        .from("recommendation_cache")
+        .delete()
+        .neq("id", "00000000-0000-0000-0000-000000000000"),
+    ])
   }
 
   return (
