@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   Sparkles,
   MapPin,
@@ -564,6 +564,12 @@ export function RecommendationsPage({
   const [emailSettingsOpen, setEmailSettingsOpen] = useState(false)
 
   const hasRun = recommendations.length > 0 || orgRecommendations.length > 0
+
+  useEffect(() => {
+    if (window.addeventatc) {
+      window.addeventatc.refresh()
+    }
+  }, [recommendations])
 
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
   const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
