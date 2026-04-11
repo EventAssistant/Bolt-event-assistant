@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
 import {
   Users,
   Calendar,
@@ -14,17 +14,22 @@ import {
   Check,
   Pencil,
   Mail,
+  Search,
+  X,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Input } from "@/components/ui/input"
 import { supabase, type SubmittedProfileRow } from "@/lib/supabase"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useSearchParams } from "react-router-dom"
 import type { ClientProfile } from "@/types"
 import { EditProfileModal } from "@/components/EditProfileModal"
 import { toast } from "sonner"
+
+type FilterTab = "all" | "pending" | "sent-this-week"
 
 function ShareLinkBanner() {
   const [copied, setCopied] = useState(false)
@@ -294,16 +299,48 @@ function LoadingSkeleton() {
   )
 }
 
+function isWithinThisWeek(dateStr: string): boolean {
+  const now = new Date()
+  const startOfWeek = new Date(now)
+  startOfWeek.setDate(now.getDate() - now.getDay())
+  startOfWeek.setHours(0, 0, 0, 0)
+  const d = new Date(dateStr)
+  return d >= startOfWeek && d <= now
+}
+
 export function SubmittedProfilesPage({
   onLoadProfile,
 }: {
   onLoadProfile: (profile: ClientProfile, profileId?: string) => void
 }) {
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
+
   const [profiles, setProfiles] = useState<SubmittedProfileRow[]>([])
   const [loading, setLoading] = useState(true)
   const [loadedId, setLoadedId] = useState<string | null>(null)
   const [editingProfile, setEditingProfile] = useState<SubmittedProfileRow | null>(null)
+
+  const searchQuery = searchParams.get("q") ?? ""
+  const activeFilter = (searchParams.get("filter") ?? "all") as FilterTab
+
+  const setSearchQuery = (val: string) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev)
+      if (val) next.set("q", val)
+      else next.delete("q")
+      return next
+    }, { replace: true })
+  }
+
+  const setActiveFilter = (val: FilterTab) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev)
+      if (val === "all") next.delete("filter")
+      else next.set("filter", val)
+      return next
+    }, { replace: true })
+  }
 
   const fetchProfiles = async () => {
     setLoading(true)
@@ -321,6 +358,29 @@ export function SubmittedProfilesPage({
   useEffect(() => {
     fetchProfiles()
   }, [])
+
+  const filteredProfiles = useMemo(() => {
+    let result = profiles
+
+    if (activeFilter === "pending") {
+      result = result.filter((p) => !p.last_report_sent_at)
+    } else if (activeFilter === "sent-this-week") {
+      result = result.filter((p) => p.last_report_sent_at && isWithinThisWeek(p.last_report_sent_at))
+    }
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase()
+      result = result.filter((p) => {
+        const nameMatch = p.name.toLowerCase().includes(q)
+        const companyMatch = (p.industry ?? "").toLowerCase().includes(q)
+        const industryMatch = p.target_industries.some((i) => i.toLowerCase().includes(q))
+        const roleMatch = p.target_roles.some((r) => r.toLowerCase().includes(q))
+        return nameMatch || companyMatch || industryMatch || roleMatch
+      })
+    }
+
+    return result
+  }, [profiles, activeFilter, searchQuery])
 
   const handleLoad = (profile: SubmittedProfileRow) => {
     onLoadProfile(toClientProfile(profile), profile.id)
@@ -364,8 +424,15 @@ export function SubmittedProfilesPage({
     }
   }
 
-  const sentCount = profiles.filter((p) => !!p.last_report_sent_at).length
+  const FILTER_TABS: { value: FilterTab; label: string }[] = [
+    { value: "all", label: "All" },
+    { value: "pending", label: "Pending" },
+    { value: "sent-this-week", label: "Sent this week" },
+  ]
+
   const totalCount = profiles.length
+  const showingCount = filteredProfiles.length
+  const isFiltered = searchQuery.trim() !== "" || activeFilter !== "all"
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-8 space-y-8">
@@ -400,47 +467,97 @@ export function SubmittedProfilesPage({
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <p className="text-sm text-muted-foreground">
-                {totalCount} submission{totalCount !== 1 ? "s" : ""}
-              </p>
-              {totalCount > 0 && (
-                <>
-                  <span className="text-border">·</span>
-                  <div className="flex items-center gap-1.5">
-                    {sentCount > 0 ? (
-                      <CheckCircle2 className="h-4 w-4 text-chart-4" />
-                    ) : (
-                      <div className="h-4 w-4 rounded-full border-2 border-muted-foreground/30" />
-                    )}
-                    <span className={`text-sm font-medium ${sentCount > 0 ? "text-chart-4" : "text-muted-foreground"}`}>
-                      {sentCount} of {totalCount} client{totalCount !== 1 ? "s" : ""} processed this week
-                    </span>
-                  </div>
-                </>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <Input
+                placeholder="Search by name, industry, or role..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 pr-9"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label="Clear search"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
               )}
             </div>
+            <div className="flex items-center gap-1 rounded-lg border border-border bg-muted/40 p-1 w-fit">
+              {FILTER_TABS.map((tab) => (
+                <button
+                  key={tab.value}
+                  onClick={() => setActiveFilter(tab.value)}
+                  className={`rounded-md px-3 py-1.5 text-sm font-medium transition-all duration-150 ${
+                    activeFilter === tab.value
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
           </div>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {profiles.map((profile) => (
-              <div key={profile.id} className="relative">
-                {loadedId === profile.id && (
-                  <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-primary/10 border border-primary/30">
-                    <div className="flex items-center gap-2 text-primary font-medium text-sm">
-                      <CheckCircle2 className="h-5 w-5" />
-                      Loaded — going to Recommendations...
-                    </div>
-                  </div>
-                )}
-                <ProfileCard
-                  profile={profile}
-                  onLoad={() => handleLoad(profile)}
-                  onEdit={() => setEditingProfile(profile)}
-                />
+
+          <p className="text-sm text-muted-foreground">
+            {isFiltered
+              ? `Showing ${showingCount} of ${totalCount} profile${totalCount !== 1 ? "s" : ""}`
+              : `${totalCount} profile${totalCount !== 1 ? "s" : ""}`}
+          </p>
+
+          {filteredProfiles.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted/50 border border-border">
+                <Search className="h-6 w-6 text-muted-foreground" />
               </div>
-            ))}
-          </div>
+              <div>
+                <p className="text-base font-medium text-foreground">
+                  {searchQuery.trim()
+                    ? `No profiles match "${searchQuery.trim()}"`
+                    : "No profiles match this filter"}
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {searchQuery.trim() ? "Try a different search term or clear the filter." : "Try selecting a different filter."}
+                </p>
+              </div>
+              {isFiltered && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSearchQuery("")
+                    setActiveFilter("all")
+                  }}
+                >
+                  Clear filters
+                </Button>
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {filteredProfiles.map((profile) => (
+                <div key={profile.id} className="relative">
+                  {loadedId === profile.id && (
+                    <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-primary/10 border border-primary/30">
+                      <div className="flex items-center gap-2 text-primary font-medium text-sm">
+                        <CheckCircle2 className="h-5 w-5" />
+                        Loaded — going to Recommendations...
+                      </div>
+                    </div>
+                  )}
+                  <ProfileCard
+                    profile={profile}
+                    onLoad={() => handleLoad(profile)}
+                    onEdit={() => setEditingProfile(profile)}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
