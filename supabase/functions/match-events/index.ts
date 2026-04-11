@@ -7,6 +7,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 }
 
+const DEFAULT_MATCHING_INSTRUCTIONS = "You are an expert networking event matcher. Match clients to events and organizations based on their ideal networking targets, industries, and company size preferences. Prioritize quality of match over quantity."
+
 const EVENTS_SYSTEM_PROMPT = `You are an expert networking event strategist. You will receive two things:
 1. A Client Persona Profile — this describes the TYPE OF PERSON your client wants to meet at events (their ideal networking target: their industry, role, company size, pain points, and what drives them).
 2. A list of upcoming events with details including event type, description, typical audience, and industry focus.
@@ -67,6 +69,21 @@ function getSupabaseAdmin() {
   return createClient(url, serviceKey)
 }
 
+async function fetchMatchingInstructions(supabaseAdmin: ReturnType<typeof createClient>): Promise<string> {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from("matching_config")
+      .select("value")
+      .eq("key", "matching_instructions")
+      .maybeSingle()
+
+    if (error || !data) return DEFAULT_MATCHING_INSTRUCTIONS
+    return data.value || DEFAULT_MATCHING_INSTRUCTIONS
+  } catch {
+    return DEFAULT_MATCHING_INSTRUCTIONS
+  }
+}
+
 const CACHE_TTL_DAYS = 7
 
 async function callClaude(apiKey: string, systemPrompt: string, userMessage: string) {
@@ -78,7 +95,7 @@ async function callClaude(apiKey: string, systemPrompt: string, userMessage: str
       "anthropic-version": "2023-06-01",
     },
     body: JSON.stringify({
-      model: "claude-opus-4-5",
+      model: "claude-sonnet-4-6",
       max_tokens: 4096,
       system: systemPrompt,
       messages: [{ role: "user", content: userMessage }],
@@ -120,7 +137,11 @@ Deno.serve(async (req: Request) => {
 
     const orgs = organizations ?? []
     const supabaseAdmin = getSupabaseAdmin()
-    const cacheKey = await generateCacheKey(profile, events, orgs)
+
+    const [cacheKey, matchingInstructions] = await Promise.all([
+      generateCacheKey(profile, events, orgs),
+      fetchMatchingInstructions(supabaseAdmin),
+    ])
 
     const cutoff = new Date()
     cutoff.setDate(cutoff.getDate() - CACHE_TTL_DAYS)
@@ -139,14 +160,17 @@ Deno.serve(async (req: Request) => {
       )
     }
 
+    const eventsSystemPrompt = `${matchingInstructions}\n\n${EVENTS_SYSTEM_PROMPT}`
+    const orgsSystemPrompt = `${matchingInstructions}\n\n${ORGS_SYSTEM_PROMPT}`
+
     const eventsUserMessage = JSON.stringify({ persona_profile: profile, events }, null, 2)
 
     const [eventsText, orgsText] = await Promise.all([
-      callClaude(apiKey, EVENTS_SYSTEM_PROMPT, eventsUserMessage),
+      callClaude(apiKey, eventsSystemPrompt, eventsUserMessage),
       orgs.length > 0
         ? callClaude(
             apiKey,
-            ORGS_SYSTEM_PROMPT,
+            orgsSystemPrompt,
             JSON.stringify({
               persona_profile: profile,
               organizations: orgs.map((o: Record<string, string>) => ({
