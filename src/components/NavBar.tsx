@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils"
 import { useAuth } from "@/contexts/AuthContext"
 import { useSession } from "@/contexts/SessionContext"
 import { Button } from "@/components/ui/button"
-import { EmailSettingsModal } from "@/components/EmailSettingsModal"
+import { SettingsModal } from "@/components/SettingsModal"
 import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
 import {
@@ -267,11 +267,11 @@ export function NavBar() {
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="bottom" className="text-xs">
-                Email Settings
+                Settings
               </TooltipContent>
             </Tooltip>
 
-            <EmailSettingsModal open={emailSettingsOpen} onOpenChange={setEmailSettingsOpen} />
+            <SettingsModal open={emailSettingsOpen} onOpenChange={setEmailSettingsOpen} />
 
             {user && (
               <DropdownMenu>
