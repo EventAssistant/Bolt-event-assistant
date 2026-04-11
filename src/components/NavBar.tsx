@@ -37,9 +37,20 @@ const navItems = [
 
 export function NavBar() {
   const { user, signOut } = useAuth()
-  const { events, organizations, clearAll } = useSession()
+  const { events, organizations, eventsUploadedAt, clearAll } = useSession()
   const eventsCount = events.length
   const organizationsCount = organizations.length
+
+  function formatNavTimestamp(iso: string): string {
+    const d = new Date(iso)
+    return d.toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    })
+  }
   const navigate = useNavigate()
   const [isSigningOut, setIsSigningOut] = useState(false)
 
@@ -105,12 +116,19 @@ export function NavBar() {
 
         <div className="flex items-center gap-3 py-4">
           {eventsCount > 0 ? (
-            <>
-              <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-              <span className="text-xs text-muted-foreground">
-                {eventsCount} event{eventsCount !== 1 ? "s" : ""} loaded
-              </span>
-            </>
+            <div className="flex flex-col items-end gap-0">
+              <div className="flex items-center gap-1.5">
+                <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                <span className="text-xs text-muted-foreground">
+                  {eventsCount} event{eventsCount !== 1 ? "s" : ""} loaded
+                </span>
+              </div>
+              {eventsUploadedAt && (
+                <span className="text-[10px] text-muted-foreground/50 leading-none">
+                  Last uploaded: {formatNavTimestamp(eventsUploadedAt)}
+                </span>
+              )}
+            </div>
           ) : (
             <span className="text-xs text-muted-foreground">No data loaded</span>
           )}

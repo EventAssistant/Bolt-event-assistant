@@ -9,6 +9,7 @@ import {
   FileText,
   Trash2,
 } from "lucide-react"
+import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -17,7 +18,19 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { parseOrganizationsCSV } from "@/utils/csvParser"
 import { validateOrgRows, type ValidationResult } from "@/utils/csvValidation"
 import { CsvValidationDialog } from "@/components/CsvValidationDialog"
+import { useSession } from "@/contexts/SessionContext"
 import type { Organization, OrgParseResult } from "@/types"
+
+function formatUploadTimestamp(iso: string): string {
+  const d = new Date(iso)
+  return d.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  })
+}
 
 const ORG_CSV_COLUMNS_PRIMARY = [
   "name",
@@ -172,6 +185,7 @@ interface OrganizationUploadSectionProps {
 }
 
 export function OrganizationUploadSection({ onOrganizationsChange }: OrganizationUploadSectionProps) {
+  const { orgsUploadedAt, setOrganizations: setSessionOrganizations } = useSession()
   const [isDragOver, setIsDragOver] = useState(false)
   const [uploadState, setUploadState] = useState<"idle" | "uploaded">("idle")
   const [uploadedFileName, setUploadedFileName] = useState("")
@@ -221,17 +235,28 @@ export function OrganizationUploadSection({ onOrganizationsChange }: Organizatio
     if (!pendingParseResult || !pendingValidation) return
     const validSet = new Set(pendingValidation.validIndices)
     const filteredOrgs = pendingParseResult.organizations.filter((_, i) => validSet.has(i))
+    const skipped = pendingParseResult.organizations.length - filteredOrgs.length
     const filteredResult: OrgParseResult = {
       ...pendingParseResult,
       organizations: filteredOrgs,
-      skippedRows: pendingParseResult.organizations.length - filteredOrgs.length,
+      skippedRows: skipped,
     }
+    const uploadedAt = new Date().toISOString()
     setParseResult(filteredResult)
+    setSessionOrganizations(filteredOrgs, uploadedAt)
     onOrganizationsChange?.(filteredResult.organizations)
     setUploadState("uploaded")
     setValidationDialogOpen(false)
     setPendingValidation(null)
     setPendingParseResult(null)
+
+    const description = skipped > 0
+      ? `${skipped} row${skipped !== 1 ? "s" : ""} skipped due to validation errors`
+      : undefined
+    toast.success(`${filteredOrgs.length} organization${filteredOrgs.length !== 1 ? "s" : ""} uploaded successfully`, {
+      description,
+      duration: 5000,
+    })
   }
 
   const handleValidationCancel = () => {
@@ -355,6 +380,11 @@ export function OrganizationUploadSection({ onOrganizationsChange }: Organizatio
                   <p className="mt-0.5 text-xs text-muted-foreground">
                     {organizations.length} organizations loaded
                   </p>
+                  {orgsUploadedAt && (
+                    <p className="mt-1 text-xs text-muted-foreground/60">
+                      Last uploaded: {formatUploadTimestamp(orgsUploadedAt)}
+                    </p>
+                  )}
                   <Button variant="outline" size="sm" className="mt-3">
                     Replace File
                   </Button>

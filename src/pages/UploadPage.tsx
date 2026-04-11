@@ -15,6 +15,7 @@ import {
   TriangleAlert,
   Trash2,
 } from "lucide-react"
+import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -25,6 +26,7 @@ import { parseCSV } from "@/utils/csvParser"
 import { validateEventRows, type ValidationResult } from "@/utils/csvValidation"
 import { CsvValidationDialog } from "@/components/CsvValidationDialog"
 import { OrganizationUploadSection } from "@/components/OrganizationUploadSection"
+import { useSession } from "@/contexts/SessionContext"
 import type { Event, ParseResult, Organization } from "@/types"
 
 const CSV_COLUMNS = [
@@ -180,6 +182,17 @@ function getUniqueValues(events: Event[], field: keyof Event): string[] {
   return Array.from(vals).sort()
 }
 
+function formatUploadTimestamp(iso: string): string {
+  const d = new Date(iso)
+  return d.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  })
+}
+
 export function UploadPage({
   onEventsChange,
   onOrganizationsChange,
@@ -187,6 +200,7 @@ export function UploadPage({
   onEventsChange?: (events: Event[]) => void
   onOrganizationsChange?: (organizations: Organization[]) => void
 }) {
+  const { eventsUploadedAt, setEvents: setSessionEvents } = useSession()
   const [isDragOver, setIsDragOver] = useState(false)
   const [uploadState, setUploadState] = useState<"idle" | "uploaded">("idle")
   const [uploadedFileName, setUploadedFileName] = useState("")
@@ -288,18 +302,29 @@ export function UploadPage({
     if (!pendingParseResult || !pendingValidation) return
     const validSet = new Set(pendingValidation.validIndices)
     const filteredEvents = pendingParseResult.events.filter((_, i) => validSet.has(i))
+    const skipped = pendingParseResult.events.length - filteredEvents.length
     const filteredResult: ParseResult = {
       ...pendingParseResult,
       events: filteredEvents,
-      skippedRows: pendingParseResult.events.length - filteredEvents.length,
+      skippedRows: skipped,
     }
+    const uploadedAt = new Date().toISOString()
     setParseResult(filteredResult)
+    setSessionEvents(filteredEvents, uploadedAt)
     onEventsChange?.(filteredResult.events)
     setUploadState("uploaded")
     setPage(1)
     setValidationDialogOpen(false)
     setPendingValidation(null)
     setPendingParseResult(null)
+
+    const description = skipped > 0
+      ? `${skipped} row${skipped !== 1 ? "s" : ""} skipped due to validation errors`
+      : undefined
+    toast.success(`${filteredEvents.length} event${filteredEvents.length !== 1 ? "s" : ""} uploaded successfully`, {
+      description,
+      duration: 5000,
+    })
   }
 
   const handleValidationCancel = () => {
@@ -597,6 +622,11 @@ export function UploadPage({
                     <p className="mt-0.5 text-xs text-muted-foreground">
                       {events.length} events loaded successfully
                     </p>
+                    {eventsUploadedAt && (
+                      <p className="mt-1 text-xs text-muted-foreground/60">
+                        Last uploaded: {formatUploadTimestamp(eventsUploadedAt)}
+                      </p>
+                    )}
                     <Button variant="outline" size="sm" className="mt-3">
                       Replace File
                     </Button>

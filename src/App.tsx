@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom"
+import { Toaster } from "@/components/ui/sonner"
 import { AuthProvider } from "@/contexts/AuthContext"
 import { SessionProvider } from "@/contexts/SessionContext"
 import { EmailSettingsProvider } from "@/contexts/EmailSettingsContext"
@@ -28,6 +29,7 @@ export function App() {
     <AuthProvider>
       <SessionProvider>
         <EmailSettingsProvider>
+          <Toaster position="bottom-right" richColors closeButton />
           <BrowserRouter>
             <Routes>
               <Route path="/client-intake" element={<ClientIntakePage />} />

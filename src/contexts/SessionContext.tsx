@@ -8,6 +8,8 @@ const EVENTS_STORAGE_KEY = "uploaded_events"
 const ORGANIZATIONS_STORAGE_KEY = "uploaded_organizations"
 const RECOMMENDATIONS_STORAGE_KEY = "ai_recommendations"
 const ORG_RECOMMENDATIONS_STORAGE_KEY = "ai_org_recommendations"
+const EVENTS_UPLOADED_AT_KEY = "events_uploaded_at"
+const ORGS_UPLOADED_AT_KEY = "orgs_uploaded_at"
 
 export interface AIRecommendation {
   event_name: string
@@ -102,8 +104,10 @@ interface SessionContextType {
   activeProfileId: string | null
   recommendations: AIRecommendation[]
   orgRecommendations: OrgRecommendation[]
-  setEvents: (events: Event[]) => void
-  setOrganizations: (organizations: Organization[]) => void
+  eventsUploadedAt: string | null
+  orgsUploadedAt: string | null
+  setEvents: (events: Event[], uploadedAt?: string) => void
+  setOrganizations: (organizations: Organization[], uploadedAt?: string) => void
   setActiveProfile: (profile: ClientProfile, profileId?: string | null) => void
   setRecommendations: (recs: AIRecommendation[]) => void
   setOrgRecommendations: (recs: OrgRecommendation[]) => void
@@ -122,22 +126,46 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   })
   const [recommendations, setRecommendationsState] = useState<AIRecommendation[]>(loadStoredRecommendations)
   const [orgRecommendations, setOrgRecommendationsState] = useState<OrgRecommendation[]>(loadStoredOrgRecommendations)
+  const [eventsUploadedAt, setEventsUploadedAt] = useState<string | null>(() => {
+    try { return localStorage.getItem(EVENTS_UPLOADED_AT_KEY) } catch { return null }
+  })
+  const [orgsUploadedAt, setOrgsUploadedAt] = useState<string | null>(() => {
+    try { return localStorage.getItem(ORGS_UPLOADED_AT_KEY) } catch { return null }
+  })
 
-  const setEvents = (events: Event[]) => {
+  const setEvents = (events: Event[], uploadedAt?: string) => {
     setEventsState(events)
     try {
       localStorage.setItem(EVENTS_STORAGE_KEY, JSON.stringify(events))
     } catch {
       // ignore
     }
+    if (uploadedAt !== undefined) {
+      setEventsUploadedAt(uploadedAt)
+      try {
+        if (uploadedAt) localStorage.setItem(EVENTS_UPLOADED_AT_KEY, uploadedAt)
+        else localStorage.removeItem(EVENTS_UPLOADED_AT_KEY)
+      } catch {
+        // ignore
+      }
+    }
   }
 
-  const setOrganizations = (organizations: Organization[]) => {
+  const setOrganizations = (organizations: Organization[], uploadedAt?: string) => {
     setOrganizationsState(organizations)
     try {
       localStorage.setItem(ORGANIZATIONS_STORAGE_KEY, JSON.stringify(organizations))
     } catch {
       // ignore
+    }
+    if (uploadedAt !== undefined) {
+      setOrgsUploadedAt(uploadedAt)
+      try {
+        if (uploadedAt) localStorage.setItem(ORGS_UPLOADED_AT_KEY, uploadedAt)
+        else localStorage.removeItem(ORGS_UPLOADED_AT_KEY)
+      } catch {
+        // ignore
+      }
     }
   }
 
@@ -191,8 +219,8 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   }, [activeProfile])
 
   const clearAll = () => {
-    setEvents([])
-    setOrganizations([])
+    setEvents([], "")
+    setOrganizations([], "")
     setActiveProfile(mockClientProfile, null)
     setRecommendations([])
     setOrgRecommendations([])
@@ -206,6 +234,8 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       activeProfileId,
       recommendations,
       orgRecommendations,
+      eventsUploadedAt,
+      orgsUploadedAt,
       setEvents,
       setOrganizations,
       setActiveProfile,
