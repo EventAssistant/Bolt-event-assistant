@@ -1,11 +1,10 @@
-import { createContext, useContext, useState, useEffect } from "react"
+import { createContext, useContext, useState, useEffect, useRef } from "react"
 import type { ClientProfile, Event, Organization } from "@/types"
 import { mockClientProfile } from "@/data/mockEvents"
+import { supabase } from "@/lib/supabase"
 
 const PROFILE_STORAGE_KEY = "active_client_profile"
 const PROFILE_ID_STORAGE_KEY = "active_profile_id"
-const EVENTS_STORAGE_KEY = "uploaded_events"
-const ORGANIZATIONS_STORAGE_KEY = "uploaded_organizations"
 const RECOMMENDATIONS_STORAGE_KEY = "ai_recommendations"
 const ORG_RECOMMENDATIONS_STORAGE_KEY = "ai_org_recommendations"
 const EVENTS_UPLOADED_AT_KEY = "events_uploaded_at"
@@ -45,32 +44,6 @@ function loadStoredProfile(): ClientProfile {
   return mockClientProfile
 }
 
-function loadStoredEvents(): Event[] {
-  try {
-    const raw = localStorage.getItem(EVENTS_STORAGE_KEY)
-    if (raw) {
-      const parsed = JSON.parse(raw) as Event[]
-      if (Array.isArray(parsed)) return parsed
-    }
-  } catch {
-    // ignore
-  }
-  return []
-}
-
-function loadStoredOrganizations(): Organization[] {
-  try {
-    const raw = localStorage.getItem(ORGANIZATIONS_STORAGE_KEY)
-    if (raw) {
-      const parsed = JSON.parse(raw) as Organization[]
-      if (Array.isArray(parsed)) return parsed
-    }
-  } catch {
-    // ignore
-  }
-  return []
-}
-
 function loadStoredRecommendations(): AIRecommendation[] {
   try {
     const raw = localStorage.getItem(RECOMMENDATIONS_STORAGE_KEY)
@@ -106,6 +79,7 @@ interface SessionContextType {
   orgRecommendations: OrgRecommendation[]
   eventsUploadedAt: string | null
   orgsUploadedAt: string | null
+  loadingData: boolean
   setEvents: (events: Event[], uploadedAt?: string) => void
   setOrganizations: (organizations: Organization[], uploadedAt?: string) => void
   setActiveProfile: (profile: ClientProfile, profileId?: string | null) => void
@@ -118,8 +92,8 @@ interface SessionContextType {
 const SessionContext = createContext<SessionContextType | null>(null)
 
 export function SessionProvider({ children }: { children: React.ReactNode }) {
-  const [events, setEventsState] = useState<Event[]>(loadStoredEvents)
-  const [organizations, setOrganizationsState] = useState<Organization[]>(loadStoredOrganizations)
+  const [events, setEventsState] = useState<Event[]>([])
+  const [organizations, setOrganizationsState] = useState<Organization[]>([])
   const [activeProfile, setActiveProfileState] = useState<ClientProfile>(loadStoredProfile)
   const [activeProfileId, setActiveProfileIdState] = useState<string | null>(() => {
     try { return localStorage.getItem(PROFILE_ID_STORAGE_KEY) } catch { return null }
@@ -132,14 +106,101 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [orgsUploadedAt, setOrgsUploadedAt] = useState<string | null>(() => {
     try { return localStorage.getItem(ORGS_UPLOADED_AT_KEY) } catch { return null }
   })
+  const [loadingData, setLoadingData] = useState(false)
+  const userRef = useRef<string | null>(null)
 
-  const setEvents = (events: Event[], uploadedAt?: string) => {
-    setEventsState(events)
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      const userId = session?.user?.id ?? null
+
+      if (userId && userId !== userRef.current) {
+        userRef.current = userId
+        loadUserData(userId)
+      } else if (!userId) {
+        userRef.current = null
+        setEventsState([])
+        setOrganizationsState([])
+      }
+    })
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      const userId = session?.user?.id ?? null
+      if (userId) {
+        userRef.current = userId
+        loadUserData(userId)
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
+
+  async function loadUserData(userId: string) {
+    setLoadingData(true)
     try {
-      localStorage.setItem(EVENTS_STORAGE_KEY, JSON.stringify(events))
-    } catch {
-      // ignore
+      const [eventsRes, orgsRes] = await Promise.all([
+        supabase.from("uploaded_events").select("*").eq("user_id", userId),
+        supabase.from("uploaded_organizations").select("*").eq("user_id", userId),
+      ])
+
+      if (eventsRes.data && eventsRes.data.length > 0) {
+        const dbEvents: Event[] = eventsRes.data.map((row: Record<string, unknown>) => ({
+          id: row.id as string,
+          name: row.name as string,
+          start_date: row.start_date as string,
+          start_time: row.start_time as string,
+          address: row.address as string,
+          event_type: row.event_type as string,
+          group_type: row.group_type as string,
+          paid: row.paid as string,
+          description: row.description as string,
+          website: row.website as string,
+          end_date: (row.end_date as string) || "",
+          end_time: (row.end_time as string) || "",
+          city_calendar: (row.city_calendar as string) || "",
+          event_city: (row.event_city as string) || "",
+          state: (row.state as string) || "",
+          zipcode: (row.zipcode as string) || "",
+          group_name: (row.group_name as string) || "",
+          source: (row.source as string) || "",
+          notes: (row.notes as string) || "",
+          group_id: (row.group_id as string) || "",
+          participation: (row.participation as string) || "",
+          internal_type: (row.internal_type as string) || "",
+          part_of_town: (row.part_of_town as string) || "",
+          subcategory: (row.subcategory as string[]) || [],
+          created_at: (row.created_at as string) || new Date().toISOString(),
+          updated_at: (row.updated_at as string) || new Date().toISOString(),
+        }))
+        setEventsState(dbEvents)
+      }
+
+      if (orgsRes.data && orgsRes.data.length > 0) {
+        const dbOrgs: Organization[] = orgsRes.data.map((row: Record<string, unknown>) => ({
+          name: row.name as string,
+          category: row.category as string,
+          city: row.city as string,
+          description: row.description as string,
+          home_page: row.home_page as string,
+          internal_type: row.internal_type as string,
+          notes: row.notes as string,
+          zip_code: (row.zip_code as string) || "",
+          address: (row.address as string) || "",
+          calendar: (row.calendar as string) || "",
+          activity: (row.activity as string) || "",
+          status: (row.status as string) || "",
+        }))
+        setOrganizationsState(dbOrgs)
+      }
+    } catch (error) {
+      console.error("Failed to load data from database:", error)
+    } finally {
+      setLoadingData(false)
     }
+  }
+
+  const setEvents = (newEvents: Event[], uploadedAt?: string) => {
+    setEventsState(newEvents)
+
     if (uploadedAt !== undefined) {
       setEventsUploadedAt(uploadedAt)
       try {
@@ -149,15 +210,57 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
         // ignore
       }
     }
+
+    const userId = userRef.current
+    if (!userId) return
+
+    ;(async () => {
+      try {
+        await supabase.from("uploaded_events").delete().eq("user_id", userId)
+
+        if (newEvents.length > 0) {
+          const rows = newEvents.map((e) => ({
+            user_id: userId,
+            name: e.name,
+            start_date: e.start_date,
+            start_time: e.start_time,
+            address: e.address,
+            event_type: e.event_type,
+            group_type: e.group_type,
+            paid: e.paid,
+            description: e.description,
+            website: e.website,
+            end_date: e.end_date,
+            end_time: e.end_time,
+            city_calendar: e.city_calendar,
+            event_city: e.event_city,
+            state: e.state,
+            zipcode: e.zipcode,
+            group_name: e.group_name,
+            source: e.source,
+            notes: e.notes,
+            group_id: e.group_id,
+            participation: e.participation,
+            internal_type: e.internal_type,
+            part_of_town: e.part_of_town,
+            subcategory: e.subcategory,
+          }))
+
+          const BATCH = 500
+          for (let i = 0; i < rows.length; i += BATCH) {
+            const { error } = await supabase.from("uploaded_events").insert(rows.slice(i, i + BATCH))
+            if (error) console.error("Failed to insert events batch:", error)
+          }
+        }
+      } catch (error) {
+        console.error("Failed to save events to database:", error)
+      }
+    })()
   }
 
-  const setOrganizations = (organizations: Organization[], uploadedAt?: string) => {
-    setOrganizationsState(organizations)
-    try {
-      localStorage.setItem(ORGANIZATIONS_STORAGE_KEY, JSON.stringify(organizations))
-    } catch {
-      // ignore
-    }
+  const setOrganizations = (newOrgs: Organization[], uploadedAt?: string) => {
+    setOrganizationsState(newOrgs)
+
     if (uploadedAt !== undefined) {
       setOrgsUploadedAt(uploadedAt)
       try {
@@ -167,6 +270,38 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
         // ignore
       }
     }
+
+    const userId = userRef.current
+    if (!userId) return
+
+    ;(async () => {
+      try {
+        await supabase.from("uploaded_organizations").delete().eq("user_id", userId)
+
+        if (newOrgs.length > 0) {
+          const rows = newOrgs.map((org) => ({
+            user_id: userId,
+            name: org.name,
+            category: org.category,
+            city: org.city,
+            description: org.description,
+            home_page: org.home_page,
+            internal_type: org.internal_type,
+            notes: org.notes,
+            zip_code: org.zip_code,
+            address: org.address,
+            calendar: org.calendar,
+            activity: org.activity,
+            status: org.status,
+          }))
+
+          const { error } = await supabase.from("uploaded_organizations").insert(rows)
+          if (error) console.error("Failed to insert organizations:", error)
+        }
+      } catch (error) {
+        console.error("Failed to save organizations to database:", error)
+      }
+    })()
   }
 
   const setActiveProfile = (profile: ClientProfile, profileId?: string | null) => {
@@ -236,6 +371,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       orgRecommendations,
       eventsUploadedAt,
       orgsUploadedAt,
+      loadingData,
       setEvents,
       setOrganizations,
       setActiveProfile,

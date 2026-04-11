@@ -800,7 +800,7 @@ export function UploadPage({
               <div className="flex items-start gap-3">
                 <AlertCircle className="h-4 w-4 shrink-0 text-primary mt-0.5" />
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  All uploaded data is stored in memory for this session only. Closing or refreshing the tab clears everything automatically — no data is ever persisted between sessions.
+                  Uploaded events and organizations are saved to your account and will persist across sessions.
                 </p>
               </div>
             </CardContent>
