@@ -188,6 +188,73 @@ export function NavBar() {
               <span className="text-xs text-muted-foreground px-1">No data loaded</span>
             )}
 
+            <AlertDialog open={clearDialogOpen} onOpenChange={setClearDialogOpen}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">
+                  Clear Data
+                </TooltipContent>
+              </Tooltip>
+              <AlertDialogContent className="max-w-sm">
+                <AlertDialogHeader>
+                  <div className="flex items-center gap-3 mb-1">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-destructive/10 border border-destructive/20">
+                      <ShieldAlert className="h-5 w-5 text-destructive" />
+                    </div>
+                    <AlertDialogTitle className="text-base">Clear all data?</AlertDialogTitle>
+                  </div>
+                </AlertDialogHeader>
+
+                <div className="space-y-3 px-1">
+                  <div className="rounded-md border border-border bg-muted/50 px-3 py-2.5 space-y-1.5">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">This will delete:</p>
+                    <ul className="space-y-1">
+                      <li className="flex items-center gap-2 text-sm text-foreground">
+                        <span className="h-1.5 w-1.5 rounded-full bg-destructive shrink-0" />
+                        {eventsCount.toLocaleString()} event{eventsCount !== 1 ? "s" : ""}
+                      </li>
+                      <li className="flex items-center gap-2 text-sm text-foreground">
+                        <span className="h-1.5 w-1.5 rounded-full bg-destructive shrink-0" />
+                        {organizationsCount.toLocaleString()} organization{organizationsCount !== 1 ? "s" : ""}
+                      </li>
+                      <li className="flex items-center gap-2 text-sm text-foreground">
+                        <span className="h-1.5 w-1.5 rounded-full bg-destructive shrink-0" />
+                        All cached recommendations
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div className="rounded-md border border-border bg-muted/30 px-3 py-2 flex items-start gap-2">
+                    <CircleCheck className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                    <p className="text-xs text-muted-foreground">
+                      Client profiles will <span className="font-medium text-foreground">NOT</span> be deleted
+                    </p>
+                  </div>
+
+                  <p className="text-xs text-muted-foreground px-0.5">
+                    This action cannot be undone.
+                  </p>
+                </div>
+
+                <AlertDialogFooter className="mt-2">
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <Button variant="destructive" size="sm" onClick={handleClearAll}>
+                    Yes, Clear All Data
+                  </Button>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -221,68 +288,16 @@ export function NavBar() {
                   <DropdownMenuSeparator />
                   {hasData && (
                     <>
-                      <AlertDialog open={clearDialogOpen} onOpenChange={setClearDialogOpen}>
-                        <AlertDialogTrigger asChild>
-                          <DropdownMenuItem
-                            onSelect={(e) => {
-                              e.preventDefault()
-                              setClearDialogOpen(true)
-                            }}
-                            className="text-destructive focus:text-destructive gap-2"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                            Clear Data
-                          </DropdownMenuItem>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent className="max-w-sm">
-                          <AlertDialogHeader>
-                            <div className="flex items-center gap-3 mb-1">
-                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-destructive/10 border border-destructive/20">
-                                <ShieldAlert className="h-5 w-5 text-destructive" />
-                              </div>
-                              <AlertDialogTitle className="text-base">Clear all data?</AlertDialogTitle>
-                            </div>
-                          </AlertDialogHeader>
-
-                          <div className="space-y-3 px-1">
-                            <div className="rounded-md border border-border bg-muted/50 px-3 py-2.5 space-y-1.5">
-                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">This will delete:</p>
-                              <ul className="space-y-1">
-                                <li className="flex items-center gap-2 text-sm text-foreground">
-                                  <span className="h-1.5 w-1.5 rounded-full bg-destructive shrink-0" />
-                                  {eventsCount.toLocaleString()} event{eventsCount !== 1 ? "s" : ""}
-                                </li>
-                                <li className="flex items-center gap-2 text-sm text-foreground">
-                                  <span className="h-1.5 w-1.5 rounded-full bg-destructive shrink-0" />
-                                  {organizationsCount.toLocaleString()} organization{organizationsCount !== 1 ? "s" : ""}
-                                </li>
-                                <li className="flex items-center gap-2 text-sm text-foreground">
-                                  <span className="h-1.5 w-1.5 rounded-full bg-destructive shrink-0" />
-                                  All cached recommendations
-                                </li>
-                              </ul>
-                            </div>
-
-                            <div className="rounded-md border border-border bg-muted/30 px-3 py-2 flex items-start gap-2">
-                              <CircleCheck className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
-                              <p className="text-xs text-muted-foreground">
-                                Client profiles will <span className="font-medium text-foreground">NOT</span> be deleted
-                              </p>
-                            </div>
-
-                            <p className="text-xs text-muted-foreground px-0.5">
-                              This action cannot be undone.
-                            </p>
-                          </div>
-
-                          <AlertDialogFooter className="mt-2">
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <Button variant="destructive" size="sm" onClick={handleClearAll}>
-                              Yes, Clear All Data
-                            </Button>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                      <DropdownMenuItem
+                        onSelect={(e) => {
+                          e.preventDefault()
+                          setClearDialogOpen(true)
+                        }}
+                        className="text-destructive focus:text-destructive gap-2"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        Clear Data
+                      </DropdownMenuItem>
                       <DropdownMenuSeparator />
                     </>
                   )}
