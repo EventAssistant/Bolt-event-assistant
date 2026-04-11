@@ -54,15 +54,17 @@ export function EmailSettingsModal({ open: controlledOpen, onOpenChange }: Email
 
   return (
     <Dialog open={open} onOpenChange={handleOpen}>
-      <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground h-8 px-2">
-          <Settings className="h-3.5 w-3.5" />
-          <span className="text-xs">Email Settings</span>
-          {isConfigured && (
-            <CheckCircle2 className="h-3 w-3 text-chart-4" />
-          )}
-        </Button>
-      </DialogTrigger>
+      {controlledOpen === undefined && (
+        <DialogTrigger asChild>
+          <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground h-8 px-2">
+            <Settings className="h-3.5 w-3.5" />
+            <span className="text-xs">Email Settings</span>
+            {isConfigured && (
+              <CheckCircle2 className="h-3 w-3 text-chart-4" />
+            )}
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
