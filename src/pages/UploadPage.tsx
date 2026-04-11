@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react"
-import { Upload, FileText, CircleCheck as CheckCircle2, CircleAlert as AlertCircle, ChevronUp, ChevronDown, Table2, Search, X, ExternalLink, TriangleAlert, Trash2, Loader as Loader2 } from "lucide-react"
+import { Upload, FileText, CircleCheck as CheckCircle2, CircleAlert as AlertCircle, ChevronUp, ChevronDown, Table2, Search, X, ChevronLeft, ChevronRight, ExternalLink, TriangleAlert, Trash2, Loader as Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -42,6 +42,7 @@ const CSV_COLUMNS = [
   "subcategory",
 ]
 
+const PAGE_SIZE = 20
 
 function downloadSampleEventCSV() {
   const sampleData = [
@@ -78,84 +79,82 @@ function formatTime(timeStr: string): string {
 
 function EventTable({ events }: { events: Event[] }) {
   return (
-    <div className="rounded-lg border border-border overflow-hidden">
-      <div className="max-h-[600px] overflow-y-auto overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="sticky top-0">
-            <tr className="border-b border-border bg-muted/50">
-              <th className="px-4 py-3 text-left font-semibold text-muted-foreground whitespace-nowrap min-w-[40px]">#</th>
-              <th className="px-4 py-3 text-left font-semibold text-muted-foreground min-w-[180px]">Event Name</th>
-              <th className="px-4 py-3 text-left font-semibold text-muted-foreground whitespace-nowrap min-w-[120px]">Organization</th>
-              <th className="px-4 py-3 text-left font-semibold text-muted-foreground whitespace-nowrap min-w-[100px]">Date</th>
-              <th className="px-4 py-3 text-left font-semibold text-muted-foreground whitespace-nowrap min-w-[100px]">Time</th>
-              <th className="px-4 py-3 text-left font-semibold text-muted-foreground whitespace-nowrap min-w-[110px]">Type</th>
-              <th className="px-4 py-3 text-left font-semibold text-muted-foreground whitespace-nowrap min-w-[80px]">Cost</th>
-              <th className="px-4 py-3 text-left font-semibold text-muted-foreground whitespace-nowrap min-w-[110px]">Format</th>
-              <th className="px-4 py-3 text-left font-semibold text-muted-foreground whitespace-nowrap min-w-[100px]">City</th>
-            </tr>
-          </thead>
-          <tbody>
-            {events.map((event, index) => (
-              <tr
-                key={event.id}
-                className="border-b border-border/50 transition-colors hover:bg-muted/30 last:border-0"
-              >
-                <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{index + 1}</td>
-                <td className="px-4 py-3 min-w-[180px]">
-                  {event.website ? (
-                    <a
-                      href={event.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-medium text-primary hover:underline flex items-center gap-1"
-                    >
-                      <span className="truncate">{event.name || "—"}</span>
-                      <ExternalLink className="h-3 w-3 shrink-0 opacity-60" />
-                    </a>
-                  ) : (
-                    <span className="font-medium text-foreground">{event.name || "—"}</span>
-                  )}
-                  {event.subcategory.length > 0 && (
-                    <div className="mt-1 flex flex-wrap gap-1">
-                      {event.subcategory.slice(0, 2).map((s) => (
-                        <span key={s} className="text-xs text-muted-foreground/70 bg-muted/60 rounded px-1.5 py-0.5">
-                          {s}
-                        </span>
-                      ))}
-                      {event.subcategory.length > 2 && (
-                        <span className="text-xs text-muted-foreground/50">+{event.subcategory.length - 2}</span>
-                      )}
-                    </div>
-                  )}
-                </td>
-                <td className="px-4 py-3 text-muted-foreground whitespace-nowrap truncate min-w-[120px]">
-                  {event.group_name || "—"}
-                </td>
-                <td className="px-4 py-3 text-muted-foreground whitespace-nowrap min-w-[100px]">{formatDate(event.start_date)}</td>
-                <td className="px-4 py-3 text-muted-foreground whitespace-nowrap min-w-[100px]">{formatTime(event.start_time)}</td>
-                <td className="px-4 py-3 whitespace-nowrap min-w-[110px]">
-                  <Badge variant="secondary" className="whitespace-nowrap text-xs">
-                    {event.event_type || "—"}
-                  </Badge>
-                </td>
-                <td className="px-4 py-3 whitespace-nowrap min-w-[80px]">
-                  <span
-                    className={
-                      event.paid === "Free" ? "text-chart-4 font-medium text-sm" : "text-foreground font-medium text-sm"
-                    }
+    <div className="w-full overflow-x-auto rounded-lg border border-border">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b border-border bg-muted/50">
+            <th className="px-4 py-3 text-left font-semibold text-muted-foreground whitespace-nowrap">#</th>
+            <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Event Name</th>
+            <th className="px-4 py-3 text-left font-semibold text-muted-foreground whitespace-nowrap">Organization</th>
+            <th className="px-4 py-3 text-left font-semibold text-muted-foreground whitespace-nowrap">Date</th>
+            <th className="px-4 py-3 text-left font-semibold text-muted-foreground whitespace-nowrap">Time</th>
+            <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Type</th>
+            <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Cost</th>
+            <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Format</th>
+            <th className="px-4 py-3 text-left font-semibold text-muted-foreground">City</th>
+          </tr>
+        </thead>
+        <tbody>
+          {events.map((event, index) => (
+            <tr
+              key={event.id}
+              className="border-b border-border/50 transition-colors hover:bg-muted/30 last:border-0"
+            >
+              <td className="px-4 py-3 text-muted-foreground">{index + 1}</td>
+              <td className="px-4 py-3 max-w-[240px]">
+                {event.website ? (
+                  <a
+                    href={event.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium text-primary hover:underline flex items-center gap-1"
                   >
-                    {event.paid || "—"}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-muted-foreground whitespace-nowrap text-xs min-w-[110px]">
-                  {event.participation || "—"}
-                </td>
-                <td className="px-4 py-3 text-muted-foreground whitespace-nowrap min-w-[100px]">{event.event_city || "—"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                    <span className="truncate">{event.name || "—"}</span>
+                    <ExternalLink className="h-3 w-3 shrink-0 opacity-60" />
+                  </a>
+                ) : (
+                  <span className="font-medium text-foreground">{event.name || "—"}</span>
+                )}
+                {event.subcategory.length > 0 && (
+                  <div className="mt-1 flex flex-wrap gap-1">
+                    {event.subcategory.slice(0, 2).map((s) => (
+                      <span key={s} className="text-xs text-muted-foreground/70 bg-muted/60 rounded px-1.5 py-0.5">
+                        {s}
+                      </span>
+                    ))}
+                    {event.subcategory.length > 2 && (
+                      <span className="text-xs text-muted-foreground/50">+{event.subcategory.length - 2}</span>
+                    )}
+                  </div>
+                )}
+              </td>
+              <td className="px-4 py-3 text-muted-foreground max-w-[160px] truncate">
+                {event.group_name || "—"}
+              </td>
+              <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{formatDate(event.start_date)}</td>
+              <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{formatTime(event.start_time)}</td>
+              <td className="px-4 py-3">
+                <Badge variant="secondary" className="whitespace-nowrap text-xs">
+                  {event.event_type || "—"}
+                </Badge>
+              </td>
+              <td className="px-4 py-3">
+                <span
+                  className={
+                    event.paid === "Free" ? "text-chart-4 font-medium text-sm" : "text-foreground font-medium text-sm"
+                  }
+                >
+                  {event.paid || "—"}
+                </span>
+              </td>
+              <td className="px-4 py-3 text-muted-foreground whitespace-nowrap text-xs">
+                {event.participation || "—"}
+              </td>
+              <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{event.event_city || "—"}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   )
 }
@@ -200,6 +199,7 @@ export function UploadPage({
   const [filterParticipation, setFilterParticipation] = useState("all")
   const [filterGroupType, setFilterGroupType] = useState("all")
   const [filterCity, setFilterCity] = useState("all")
+  const [page, setPage] = useState(1)
   const [validationDialogOpen, setValidationDialogOpen] = useState(false)
   const [pendingValidation, setPendingValidation] = useState<ValidationResult | null>(null)
   const [pendingParseResult, setPendingParseResult] = useState<ParseResult | null>(null)
@@ -234,6 +234,10 @@ export function UploadPage({
     })
   }, [events, search, filterEventType, filterPaid, filterParticipation, filterGroupType, filterCity])
 
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const currentPage = Math.min(page, totalPages)
+  const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+
   const resetFilters = () => {
     setSearch("")
     setFilterEventType("all")
@@ -241,6 +245,7 @@ export function UploadPage({
     setFilterParticipation("all")
     setFilterGroupType("all")
     setFilterCity("all")
+    setPage(1)
   }
 
   const hasActiveFilters =
@@ -290,6 +295,7 @@ export function UploadPage({
     setValidationDialogOpen(false)
     setPendingValidation(null)
     setPendingParseResult(null)
+    setPage(1)
 
     const uploadedAt = new Date().toISOString()
     let dbResult: UpsertResult = { inserted: validationPassedEvents.length, skipped: 0 }
@@ -332,6 +338,7 @@ export function UploadPage({
     setFilterParticipation("all")
     setFilterGroupType("all")
     setFilterCity("all")
+    setPage(1)
     setSessionEvents([], new Date().toISOString())
     onEventsChange?.([])
   }
@@ -356,8 +363,8 @@ export function UploadPage({
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_280px]">
-        <div className="space-y-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2 space-y-6">
 
           {loadingData && (
             <div className="flex items-center justify-center py-16 text-muted-foreground gap-2">
@@ -408,12 +415,12 @@ export function UploadPage({
                       <Input
                         placeholder="Search events, orgs, cities..."
                         value={search}
-                        onChange={(e) => setSearch(e.target.value)}
+                        onChange={(e) => { setSearch(e.target.value); setPage(1) }}
                         className="pl-9 h-9"
                       />
                       {search && (
                         <button
-                          onClick={() => setSearch("")}
+                          onClick={() => { setSearch(""); setPage(1) }}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                         >
                           <X className="h-3.5 w-3.5" />
@@ -421,7 +428,7 @@ export function UploadPage({
                       )}
                     </div>
 
-                    <Select value={filterEventType} onValueChange={setFilterEventType}>
+                    <Select value={filterEventType} onValueChange={(v) => { setFilterEventType(v); setPage(1) }}>
                       <SelectTrigger className="h-9 w-[140px]">
                         <SelectValue placeholder="Event Type" />
                       </SelectTrigger>
@@ -433,7 +440,7 @@ export function UploadPage({
                       </SelectContent>
                     </Select>
 
-                    <Select value={filterPaid} onValueChange={setFilterPaid}>
+                    <Select value={filterPaid} onValueChange={(v) => { setFilterPaid(v); setPage(1) }}>
                       <SelectTrigger className="h-9 w-[120px]">
                         <SelectValue placeholder="Cost" />
                       </SelectTrigger>
@@ -445,7 +452,7 @@ export function UploadPage({
                       </SelectContent>
                     </Select>
 
-                    <Select value={filterParticipation} onValueChange={setFilterParticipation}>
+                    <Select value={filterParticipation} onValueChange={(v) => { setFilterParticipation(v); setPage(1) }}>
                       <SelectTrigger className="h-9 w-[130px]">
                         <SelectValue placeholder="Format" />
                       </SelectTrigger>
@@ -457,7 +464,7 @@ export function UploadPage({
                       </SelectContent>
                     </Select>
 
-                    <Select value={filterGroupType} onValueChange={setFilterGroupType}>
+                    <Select value={filterGroupType} onValueChange={(v) => { setFilterGroupType(v); setPage(1) }}>
                       <SelectTrigger className="h-9 w-[150px]">
                         <SelectValue placeholder="Group Type" />
                       </SelectTrigger>
@@ -470,7 +477,7 @@ export function UploadPage({
                     </Select>
 
                     {cityOptions.length > 1 && (
-                      <Select value={filterCity} onValueChange={setFilterCity}>
+                      <Select value={filterCity} onValueChange={(v) => { setFilterCity(v); setPage(1) }}>
                         <SelectTrigger className="h-9 w-[130px]">
                           <SelectValue placeholder="City" />
                         </SelectTrigger>
@@ -491,12 +498,17 @@ export function UploadPage({
                     )}
                   </div>
 
-                  <div className="text-sm text-muted-foreground">
+                  <div className="flex items-center justify-between text-sm text-muted-foreground">
                     <span>
                       {filtered.length === events.length
-                        ? `${events.length} events loaded`
+                        ? `${events.length} events`
                         : `${filtered.length} of ${events.length} events`}
                     </span>
+                    {filtered.length > PAGE_SIZE && (
+                      <span>
+                        Page {currentPage} of {totalPages}
+                      </span>
+                    )}
                   </div>
 
                   {filtered.length === 0 ? (
@@ -508,7 +520,52 @@ export function UploadPage({
                       </Button>
                     </div>
                   ) : (
-                    <EventTable events={filtered} />
+                    <EventTable events={paginated} />
+                  )}
+
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-center gap-2 pt-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPage((p) => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                        className="h-8 w-8 p-0"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      {Array.from({ length: totalPages }, (_, i) => i + 1)
+                        .filter((p) => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
+                        .reduce<(number | "...")[]>((acc, p, idx, arr) => {
+                          if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push("...")
+                          acc.push(p)
+                          return acc
+                        }, [])
+                        .map((p, idx) =>
+                          p === "..." ? (
+                            <span key={`ellipsis-${idx}`} className="px-1 text-muted-foreground text-sm">...</span>
+                          ) : (
+                            <Button
+                              key={p}
+                              variant={p === currentPage ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setPage(p as number)}
+                              className="h-8 w-8 p-0"
+                            >
+                              {p}
+                            </Button>
+                          )
+                        )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                        className="h-8 w-8 p-0"
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
                   )}
                 </CardContent>
               )}
