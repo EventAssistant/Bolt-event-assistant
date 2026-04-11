@@ -185,7 +185,7 @@ interface OrganizationUploadSectionProps {
 }
 
 export function OrganizationUploadSection({ onOrganizationsChange }: OrganizationUploadSectionProps) {
-  const { orgsUploadedAt, setOrganizations: setSessionOrganizations } = useSession()
+  const { orgsUploadedAt, setOrganizations: setSessionOrganizations, organizations: sessionOrganizations } = useSession()
   const [isDragOver, setIsDragOver] = useState(false)
   const [uploadState, setUploadState] = useState<"idle" | "uploaded">("idle")
   const [uploadedFileName, setUploadedFileName] = useState("")
@@ -234,29 +234,43 @@ export function OrganizationUploadSection({ onOrganizationsChange }: Organizatio
   const handleValidationConfirm = () => {
     if (!pendingParseResult || !pendingValidation) return
     const validSet = new Set(pendingValidation.validIndices)
-    const filteredOrgs = pendingParseResult.organizations.filter((_, i) => validSet.has(i))
-    const skipped = pendingParseResult.organizations.length - filteredOrgs.length
+    const validationPassedOrgs = pendingParseResult.organizations.filter((_, i) => validSet.has(i))
+    const validationSkipped = pendingParseResult.organizations.length - validationPassedOrgs.length
+
+    const existingNames = new Set(
+      sessionOrganizations.map((o) => o.name.trim().toLowerCase())
+    )
+    const newOrgs = validationPassedOrgs.filter(
+      (o) => !existingNames.has(o.name.trim().toLowerCase())
+    )
+    const duplicateCount = validationPassedOrgs.length - newOrgs.length
+
+    const mergedOrgs = [...sessionOrganizations, ...newOrgs]
     const filteredResult: OrgParseResult = {
       ...pendingParseResult,
-      organizations: filteredOrgs,
-      skippedRows: skipped,
+      organizations: mergedOrgs,
+      skippedRows: validationSkipped,
     }
     const uploadedAt = new Date().toISOString()
     setParseResult(filteredResult)
-    setSessionOrganizations(filteredOrgs, uploadedAt)
-    onOrganizationsChange?.(filteredResult.organizations)
+    setSessionOrganizations(mergedOrgs, uploadedAt)
+    onOrganizationsChange?.(mergedOrgs)
     setUploadState("uploaded")
     setValidationDialogOpen(false)
     setPendingValidation(null)
     setPendingParseResult(null)
 
-    const description = skipped > 0
-      ? `${skipped} row${skipped !== 1 ? "s" : ""} skipped due to validation errors`
-      : undefined
-    toast.success(`${filteredOrgs.length} organization${filteredOrgs.length !== 1 ? "s" : ""} uploaded successfully`, {
-      description,
-      duration: 5000,
-    })
+    const total = validationPassedOrgs.length
+    if (newOrgs.length === 0 && duplicateCount > 0) {
+      toast.info(`No new organizations found — all ${total} record${total !== 1 ? "s" : ""} already exist`, {
+        duration: 5000,
+      })
+    } else {
+      toast.success(
+        `${total} organization${total !== 1 ? "s" : ""} processed — ${newOrgs.length} new${duplicateCount > 0 ? `, ${duplicateCount} already existed (skipped)` : ""}`,
+        { description: validationSkipped > 0 ? `${validationSkipped} row${validationSkipped !== 1 ? "s" : ""} skipped due to validation errors` : undefined, duration: 5000 }
+      )
+    }
   }
 
   const handleValidationCancel = () => {
