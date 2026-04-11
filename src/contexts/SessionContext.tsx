@@ -70,6 +70,11 @@ function loadStoredOrgRecommendations(): OrgRecommendation[] {
   return []
 }
 
+export interface UpsertResult {
+  inserted: number
+  skipped: number
+}
+
 interface SessionContextType {
   events: Event[]
   organizations: Organization[]
@@ -82,6 +87,8 @@ interface SessionContextType {
   loadingData: boolean
   setEvents: (events: Event[], uploadedAt?: string) => void
   setOrganizations: (organizations: Organization[], uploadedAt?: string) => void
+  upsertEvents: (newEvents: Event[], uploadedAt?: string) => Promise<UpsertResult>
+  upsertOrganizations: (newOrgs: Organization[], uploadedAt?: string) => Promise<UpsertResult>
   setActiveProfile: (profile: ClientProfile, profileId?: string | null) => void
   setRecommendations: (recs: AIRecommendation[]) => void
   setOrgRecommendations: (recs: OrgRecommendation[]) => void
@@ -304,6 +311,153 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     })()
   }
 
+  const upsertEvents = async (newEvents: Event[], uploadedAt?: string): Promise<UpsertResult> => {
+    const userId = userRef.current
+    if (!userId) return { inserted: 0, skipped: newEvents.length }
+
+    if (uploadedAt !== undefined) {
+      setEventsUploadedAt(uploadedAt)
+      try {
+        if (uploadedAt) localStorage.setItem(EVENTS_UPLOADED_AT_KEY, uploadedAt)
+        else localStorage.removeItem(EVENTS_UPLOADED_AT_KEY)
+      } catch { }
+    }
+
+    const rows = newEvents.map((e) => ({
+      user_id: userId,
+      name: e.name,
+      start_date: e.start_date,
+      start_time: e.start_time,
+      address: e.address,
+      event_type: e.event_type,
+      group_type: e.group_type,
+      paid: e.paid,
+      description: e.description,
+      website: e.website,
+      end_date: e.end_date,
+      end_time: e.end_time,
+      city_calendar: e.city_calendar,
+      event_city: e.event_city,
+      state: e.state,
+      zipcode: e.zipcode,
+      group_name: e.group_name,
+      source: e.source,
+      notes: e.notes,
+      group_id: e.group_id,
+      participation: e.participation,
+      internal_type: e.internal_type,
+      part_of_town: e.part_of_town,
+      subcategory: e.subcategory,
+    }))
+
+    let totalInserted = 0
+    const BATCH = 500
+    for (let i = 0; i < rows.length; i += BATCH) {
+      const batch = rows.slice(i, i + BATCH)
+      const { data, error } = await supabase
+        .from("uploaded_events")
+        .upsert(batch, { onConflict: "user_id,name,start_date", ignoreDuplicates: true })
+        .select("id")
+      if (error) {
+        console.error("Failed to upsert events batch:", error)
+      } else {
+        totalInserted += data?.length ?? 0
+      }
+    }
+
+    const { data: allEvents } = await supabase.from("uploaded_events").select("*").eq("user_id", userId)
+    if (allEvents) {
+      const dbEvents: Event[] = allEvents.map((row: Record<string, unknown>) => ({
+        id: row.id as string,
+        name: row.name as string,
+        start_date: row.start_date as string,
+        start_time: row.start_time as string,
+        address: row.address as string,
+        event_type: row.event_type as string,
+        group_type: row.group_type as string,
+        paid: row.paid as string,
+        description: row.description as string,
+        website: row.website as string,
+        end_date: (row.end_date as string) || "",
+        end_time: (row.end_time as string) || "",
+        city_calendar: (row.city_calendar as string) || "",
+        event_city: (row.event_city as string) || "",
+        state: (row.state as string) || "",
+        zipcode: (row.zipcode as string) || "",
+        group_name: (row.group_name as string) || "",
+        source: (row.source as string) || "",
+        notes: (row.notes as string) || "",
+        group_id: (row.group_id as string) || "",
+        participation: (row.participation as string) || "",
+        internal_type: (row.internal_type as string) || "",
+        part_of_town: (row.part_of_town as string) || "",
+        subcategory: (row.subcategory as string[]) || [],
+        created_at: (row.created_at as string) || new Date().toISOString(),
+        updated_at: (row.updated_at as string) || new Date().toISOString(),
+      }))
+      setEventsState(dbEvents)
+    }
+
+    return { inserted: totalInserted, skipped: newEvents.length - totalInserted }
+  }
+
+  const upsertOrganizations = async (newOrgs: Organization[], uploadedAt?: string): Promise<UpsertResult> => {
+    const userId = userRef.current
+    if (!userId) return { inserted: 0, skipped: newOrgs.length }
+
+    if (uploadedAt !== undefined) {
+      setOrgsUploadedAt(uploadedAt)
+      try {
+        if (uploadedAt) localStorage.setItem(ORGS_UPLOADED_AT_KEY, uploadedAt)
+        else localStorage.removeItem(ORGS_UPLOADED_AT_KEY)
+      } catch { }
+    }
+
+    const rows = newOrgs.map((org) => ({
+      user_id: userId,
+      name: org.name,
+      category: org.category,
+      city: org.city,
+      description: org.description,
+      home_page: org.home_page,
+      internal_type: org.internal_type,
+      notes: org.notes,
+      zip_code: org.zip_code,
+      address: org.address,
+      calendar: org.calendar,
+      activity: org.activity,
+      status: org.status,
+    }))
+
+    const { data, error } = await supabase
+      .from("uploaded_organizations")
+      .upsert(rows, { onConflict: "user_id,name", ignoreDuplicates: true })
+      .select("id")
+    if (error) console.error("Failed to upsert organizations:", error)
+    const totalInserted = data?.length ?? 0
+
+    const { data: allOrgs } = await supabase.from("uploaded_organizations").select("*").eq("user_id", userId)
+    if (allOrgs) {
+      const dbOrgs: Organization[] = allOrgs.map((row: Record<string, unknown>) => ({
+        name: row.name as string,
+        category: row.category as string,
+        city: row.city as string,
+        description: row.description as string,
+        home_page: row.home_page as string,
+        internal_type: row.internal_type as string,
+        notes: row.notes as string,
+        zip_code: (row.zip_code as string) || "",
+        address: (row.address as string) || "",
+        calendar: (row.calendar as string) || "",
+        activity: (row.activity as string) || "",
+        status: (row.status as string) || "",
+      }))
+      setOrganizationsState(dbOrgs)
+    }
+
+    return { inserted: totalInserted, skipped: newOrgs.length - totalInserted }
+  }
+
   const setActiveProfile = (profile: ClientProfile, profileId?: string | null) => {
     setActiveProfileState(profile)
     try {
@@ -374,6 +528,8 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       loadingData,
       setEvents,
       setOrganizations,
+      upsertEvents,
+      upsertOrganizations,
       setActiveProfile,
       setRecommendations,
       setOrgRecommendations,

@@ -27,6 +27,7 @@ import { validateEventRows, type ValidationResult } from "@/utils/csvValidation"
 import { CsvValidationDialog } from "@/components/CsvValidationDialog"
 import { OrganizationUploadSection } from "@/components/OrganizationUploadSection"
 import { useSession } from "@/contexts/SessionContext"
+import type { UpsertResult } from "@/contexts/SessionContext"
 import type { Event, ParseResult, Organization } from "@/types"
 
 const CSV_COLUMNS = [
@@ -200,7 +201,7 @@ export function UploadPage({
   onEventsChange?: (events: Event[]) => void
   onOrganizationsChange?: (organizations: Organization[]) => void
 }) {
-  const { eventsUploadedAt, setEvents: setSessionEvents, events: sessionEvents } = useSession()
+  const { eventsUploadedAt, upsertEvents } = useSession()
   const [isDragOver, setIsDragOver] = useState(false)
   const [uploadState, setUploadState] = useState<"idle" | "uploaded">("idle")
   const [uploadedFileName, setUploadedFileName] = useState("")
@@ -299,44 +300,38 @@ export function UploadPage({
     reader.readAsText(file)
   }
 
-  const handleValidationConfirm = () => {
+  const handleValidationConfirm = async () => {
     if (!pendingParseResult || !pendingValidation) return
+    const capturedParseResult = pendingParseResult
     const validSet = new Set(pendingValidation.validIndices)
-    const validationPassedEvents = pendingParseResult.events.filter((_, i) => validSet.has(i))
-    const validationSkipped = pendingParseResult.events.length - validationPassedEvents.length
+    const validationPassedEvents = capturedParseResult.events.filter((_, i) => validSet.has(i))
+    const validationSkipped = capturedParseResult.events.length - validationPassedEvents.length
 
-    const existingKeys = new Set(
-      sessionEvents.map((e) => `${e.name.trim().toLowerCase()}|${e.start_date}`)
-    )
-    const newEvents = validationPassedEvents.filter(
-      (e) => !existingKeys.has(`${e.name.trim().toLowerCase()}|${e.start_date}`)
-    )
-    const duplicateCount = validationPassedEvents.length - newEvents.length
-
-    const mergedEvents = [...sessionEvents, ...newEvents]
-    const filteredResult: ParseResult = {
-      ...pendingParseResult,
-      events: mergedEvents,
-      skippedRows: validationSkipped,
-    }
-    const uploadedAt = new Date().toISOString()
-    setParseResult(filteredResult)
-    setSessionEvents(mergedEvents, uploadedAt)
-    onEventsChange?.(mergedEvents)
-    setUploadState("uploaded")
-    setPage(1)
     setValidationDialogOpen(false)
     setPendingValidation(null)
     setPendingParseResult(null)
+    setUploadState("uploaded")
+    setPage(1)
 
+    const uploadedAt = new Date().toISOString()
+    let dbResult: UpsertResult = { inserted: validationPassedEvents.length, skipped: 0 }
+    try {
+      dbResult = await upsertEvents(validationPassedEvents, uploadedAt)
+    } catch (e) {
+      console.error("Upsert failed:", e)
+    }
+
+    setParseResult({ ...capturedParseResult, skippedRows: validationSkipped })
+
+    const { inserted, skipped: dbSkipped } = dbResult
     const total = validationPassedEvents.length
-    if (newEvents.length === 0 && duplicateCount > 0) {
-      toast.info(`No new events found — all ${total} record${total !== 1 ? "s" : ""} already exist`, {
+    if (inserted === 0) {
+      toast.info(`No new events added — all ${total} record${total !== 1 ? "s" : ""} already existed`, {
         duration: 5000,
       })
     } else {
       toast.success(
-        `${total} event${total !== 1 ? "s" : ""} processed — ${newEvents.length} new${duplicateCount > 0 ? `, ${duplicateCount} already existed (skipped)` : ""}`,
+        `${inserted} new event${inserted !== 1 ? "s" : ""} added${dbSkipped > 0 ? `, ${dbSkipped} already existed and ${dbSkipped !== 1 ? "were" : "was"} skipped` : ""}`,
         { description: validationSkipped > 0 ? `${validationSkipped} row${validationSkipped !== 1 ? "s" : ""} skipped due to validation errors` : undefined, duration: 5000 }
       )
     }

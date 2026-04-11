@@ -19,6 +19,7 @@ import { parseOrganizationsCSV } from "@/utils/csvParser"
 import { validateOrgRows, type ValidationResult } from "@/utils/csvValidation"
 import { CsvValidationDialog } from "@/components/CsvValidationDialog"
 import { useSession } from "@/contexts/SessionContext"
+import type { UpsertResult } from "@/contexts/SessionContext"
 import type { Organization, OrgParseResult } from "@/types"
 
 function formatUploadTimestamp(iso: string): string {
@@ -185,7 +186,7 @@ interface OrganizationUploadSectionProps {
 }
 
 export function OrganizationUploadSection({ onOrganizationsChange }: OrganizationUploadSectionProps) {
-  const { orgsUploadedAt, setOrganizations: setSessionOrganizations, organizations: sessionOrganizations } = useSession()
+  const { orgsUploadedAt, upsertOrganizations } = useSession()
   const [isDragOver, setIsDragOver] = useState(false)
   const [uploadState, setUploadState] = useState<"idle" | "uploaded">("idle")
   const [uploadedFileName, setUploadedFileName] = useState("")
@@ -232,43 +233,37 @@ export function OrganizationUploadSection({ onOrganizationsChange }: Organizatio
     reader.readAsText(file)
   }
 
-  const handleValidationConfirm = () => {
+  const handleValidationConfirm = async () => {
     if (!pendingParseResult || !pendingValidation) return
+    const capturedParseResult = pendingParseResult
     const validSet = new Set(pendingValidation.validIndices)
-    const validationPassedOrgs = pendingParseResult.organizations.filter((_, i) => validSet.has(i))
-    const validationSkipped = pendingParseResult.organizations.length - validationPassedOrgs.length
+    const validationPassedOrgs = capturedParseResult.organizations.filter((_, i) => validSet.has(i))
+    const validationSkipped = capturedParseResult.organizations.length - validationPassedOrgs.length
 
-    const existingNames = new Set(
-      sessionOrganizations.map((o) => o.name.trim().toLowerCase())
-    )
-    const newOrgs = validationPassedOrgs.filter(
-      (o) => !existingNames.has(o.name.trim().toLowerCase())
-    )
-    const duplicateCount = validationPassedOrgs.length - newOrgs.length
-
-    const mergedOrgs = [...sessionOrganizations, ...newOrgs]
-    const filteredResult: OrgParseResult = {
-      ...pendingParseResult,
-      organizations: mergedOrgs,
-      skippedRows: validationSkipped,
-    }
-    const uploadedAt = new Date().toISOString()
-    setParseResult(filteredResult)
-    setSessionOrganizations(mergedOrgs, uploadedAt)
-    onOrganizationsChange?.(mergedOrgs)
-    setUploadState("uploaded")
     setValidationDialogOpen(false)
     setPendingValidation(null)
     setPendingParseResult(null)
+    setUploadState("uploaded")
 
+    const uploadedAt = new Date().toISOString()
+    let dbResult: UpsertResult = { inserted: validationPassedOrgs.length, skipped: 0 }
+    try {
+      dbResult = await upsertOrganizations(validationPassedOrgs, uploadedAt)
+    } catch (e) {
+      console.error("Upsert failed:", e)
+    }
+
+    setParseResult({ ...capturedParseResult, skippedRows: validationSkipped })
+
+    const { inserted, skipped: dbSkipped } = dbResult
     const total = validationPassedOrgs.length
-    if (newOrgs.length === 0 && duplicateCount > 0) {
-      toast.info(`No new organizations found — all ${total} record${total !== 1 ? "s" : ""} already exist`, {
+    if (inserted === 0) {
+      toast.info(`No new organizations added — all ${total} record${total !== 1 ? "s" : ""} already existed`, {
         duration: 5000,
       })
     } else {
       toast.success(
-        `${total} organization${total !== 1 ? "s" : ""} processed — ${newOrgs.length} new${duplicateCount > 0 ? `, ${duplicateCount} already existed (skipped)` : ""}`,
+        `${inserted} new organization${inserted !== 1 ? "s" : ""} added${dbSkipped > 0 ? `, ${dbSkipped} already existed and ${dbSkipped !== 1 ? "were" : "was"} skipped` : ""}`,
         { description: validationSkipped > 0 ? `${validationSkipped} row${validationSkipped !== 1 ? "s" : ""} skipped due to validation errors` : undefined, duration: 5000 }
       )
     }
