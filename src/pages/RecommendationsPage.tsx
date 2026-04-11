@@ -34,6 +34,7 @@ import { EmailReportButton } from "@/components/EmailReportButton"
 import { EmailSettingsModal } from "@/components/EmailSettingsModal"
 import { supabase } from "@/lib/supabase"
 import { Link } from "react-router-dom"
+import { downloadRecommendationsCSV } from "@/utils/csvExport"
 
 function RankBadge({ rank }: { rank: number }) {
   const label = rank === 1 ? "Top Pick" : rank === 2 ? "2nd Choice" : rank === 3 ? "3rd Choice" : `#${rank}`
@@ -596,6 +597,10 @@ export function RecommendationsPage({
     link.click()
   }
 
+  const handleDownloadCSV = () => {
+    downloadRecommendationsCSV(profile, recommendations, orgRecommendations)
+  }
+
   const handleGenerateRecommendations = async () => {
     setLoading(true)
     setError(null)
@@ -713,6 +718,15 @@ export function RecommendationsPage({
             >
               <Trash2 className="h-3.5 w-3.5" />
               Clear
+            </Button>
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={handleDownloadCSV}
+              disabled={loading || (recommendations.length === 0 && orgRecommendations.length === 0)}
+            >
+              <Download className="h-4 w-4" />
+              Download CSV
             </Button>
             <Button
               variant="outline"
