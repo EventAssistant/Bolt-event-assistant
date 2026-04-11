@@ -1,14 +1,5 @@
 import { useState } from "react"
-import {
-  Upload,
-  Building2,
-  CircleCheck as CheckCircle2,
-  ChevronUp,
-  ChevronDown,
-  ExternalLink,
-  FileText,
-  Trash2,
-} from "lucide-react"
+import { Upload, Building2, CircleCheck as CheckCircle2, ChevronUp, ChevronDown, ExternalLink, FileText, Trash2, Loader as Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -186,18 +177,18 @@ interface OrganizationUploadSectionProps {
 }
 
 export function OrganizationUploadSection({ onOrganizationsChange }: OrganizationUploadSectionProps) {
-  const { orgsUploadedAt, upsertOrganizations } = useSession()
+  const { orgsUploadedAt, organizations: sessionOrganizations, loadingData, upsertOrganizations, setOrganizations: setSessionOrganizations } = useSession()
   const [isDragOver, setIsDragOver] = useState(false)
-  const [uploadState, setUploadState] = useState<"idle" | "uploaded">("idle")
   const [uploadedFileName, setUploadedFileName] = useState("")
-  const [parseResult, setParseResult] = useState<OrgParseResult | null>(null)
+  const [, setParseResult] = useState<OrgParseResult | null>(null)
   const [showTable, setShowTable] = useState(true)
   const [showColumnsInfo, setShowColumnsInfo] = useState(true)
   const [validationDialogOpen, setValidationDialogOpen] = useState(false)
   const [pendingValidation, setPendingValidation] = useState<ValidationResult | null>(null)
   const [pendingParseResult, setPendingParseResult] = useState<OrgParseResult | null>(null)
 
-  const organizations = parseResult?.organizations ?? []
+  const organizations = sessionOrganizations
+  const isLoaded = organizations.length > 0
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
@@ -243,7 +234,6 @@ export function OrganizationUploadSection({ onOrganizationsChange }: Organizatio
     setValidationDialogOpen(false)
     setPendingValidation(null)
     setPendingParseResult(null)
-    setUploadState("uploaded")
 
     const uploadedAt = new Date().toISOString()
     let dbResult: UpsertResult = { inserted: validationPassedOrgs.length, skipped: 0 }
@@ -277,17 +267,24 @@ export function OrganizationUploadSection({ onOrganizationsChange }: Organizatio
   }
 
   const handleClearOrganizations = () => {
-    setUploadState("idle")
     setUploadedFileName("")
     setParseResult(null)
     setShowTable(true)
+    setSessionOrganizations([], new Date().toISOString())
     onOrganizationsChange?.([])
   }
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
       <div className="lg:col-span-2 space-y-6">
-        {uploadState === "uploaded" && organizations.length > 0 && (
+        {loadingData && (
+          <div className="flex items-center justify-center py-16 text-muted-foreground gap-2">
+            <Loader2 className="h-5 w-5 animate-spin" />
+            <span className="text-sm">Loading organizations...</span>
+          </div>
+        )}
+
+        {!loadingData && isLoaded && (
           <Card className="border-border">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
@@ -296,7 +293,7 @@ export function OrganizationUploadSection({ onOrganizationsChange }: Organizatio
                   <div>
                     <CardTitle className="text-lg">Loaded Organizations</CardTitle>
                     <CardDescription className="mt-0.5">
-                      {organizations.length} organizations parsed from CSV
+                      {organizations.length} organization{organizations.length !== 1 ? "s" : ""} loaded
                     </CardDescription>
                   </div>
                 </div>
@@ -323,7 +320,7 @@ export function OrganizationUploadSection({ onOrganizationsChange }: Organizatio
             {showTable && (
               <CardContent>
                 <div className="flex items-center justify-between text-sm text-muted-foreground mb-3">
-                  <span>{organizations.length} organizations</span>
+                  <span>{organizations.length} organization{organizations.length !== 1 ? "s" : ""}</span>
                 </div>
                 <OrgTable organizations={organizations} />
               </CardContent>
@@ -331,7 +328,7 @@ export function OrganizationUploadSection({ onOrganizationsChange }: Organizatio
           </Card>
         )}
 
-        {uploadState === "idle" && (
+        {!loadingData && !isLoaded && (
           <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted/10 py-16 text-center">
             <Building2 className="h-10 w-10 text-muted-foreground/30 mb-3" />
             <p className="text-sm text-muted-foreground">No organizations loaded yet.</p>
@@ -348,7 +345,7 @@ export function OrganizationUploadSection({ onOrganizationsChange }: Organizatio
                 <CardTitle className="text-lg">Upload Organizations List</CardTitle>
                 <CardDescription>Supports CSV format with organization data.</CardDescription>
               </div>
-              {uploadState === "uploaded" && (
+              {isLoaded && (
                 <Button
                   variant="ghost"
                   size="sm"
@@ -369,7 +366,7 @@ export function OrganizationUploadSection({ onOrganizationsChange }: Organizatio
               className={`relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed py-6 px-6 text-center transition-all duration-200 ${
                 isDragOver
                   ? "border-primary bg-primary/5"
-                  : uploadState === "uploaded"
+                  : isLoaded
                   ? "border-chart-4/50 bg-chart-4/5"
                   : "border-border bg-muted/20 hover:border-primary/50 hover:bg-muted/30"
               }`}
@@ -381,12 +378,14 @@ export function OrganizationUploadSection({ onOrganizationsChange }: Organizatio
                 className="absolute inset-0 cursor-pointer opacity-0"
               />
 
-              {uploadState === "uploaded" ? (
+              {isLoaded ? (
                 <>
                   <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-chart-4/15">
                     <CheckCircle2 className="h-5 w-5 text-chart-4" />
                   </div>
-                  <p className="font-semibold text-sm text-foreground">{uploadedFileName}</p>
+                  <p className="font-semibold text-sm text-foreground">
+                    {uploadedFileName || `${organizations.length} organizations loaded`}
+                  </p>
                   <p className="mt-0.5 text-xs text-muted-foreground">
                     {organizations.length} organizations loaded
                   </p>

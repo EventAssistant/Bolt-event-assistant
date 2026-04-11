@@ -1,20 +1,5 @@
 import { useState, useMemo } from "react"
-import {
-  Upload,
-  FileText,
-  CircleCheck as CheckCircle2,
-  CircleAlert as AlertCircle,
-  ChevronUp,
-  ChevronDown,
-  Table2,
-  Search,
-  X,
-  ChevronLeft,
-  ChevronRight,
-  ExternalLink,
-  TriangleAlert,
-  Trash2,
-} from "lucide-react"
+import { Upload, FileText, CircleCheck as CheckCircle2, CircleAlert as AlertCircle, ChevronUp, ChevronDown, Table2, Search, X, ChevronLeft, ChevronRight, ExternalLink, TriangleAlert, Trash2, Loader as Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -201,9 +186,8 @@ export function UploadPage({
   onEventsChange?: (events: Event[]) => void
   onOrganizationsChange?: (organizations: Organization[]) => void
 }) {
-  const { eventsUploadedAt, upsertEvents } = useSession()
+  const { eventsUploadedAt, events: sessionEvents, loadingData, upsertEvents, setEvents: setSessionEvents } = useSession()
   const [isDragOver, setIsDragOver] = useState(false)
-  const [uploadState, setUploadState] = useState<"idle" | "uploaded">("idle")
   const [uploadedFileName, setUploadedFileName] = useState("")
   const [parseResult, setParseResult] = useState<ParseResult | null>(null)
   const [showTable, setShowTable] = useState(true)
@@ -220,7 +204,8 @@ export function UploadPage({
   const [pendingValidation, setPendingValidation] = useState<ValidationResult | null>(null)
   const [pendingParseResult, setPendingParseResult] = useState<ParseResult | null>(null)
 
-  const events = parseResult ? parseResult.events : []
+  const isLoaded = sessionEvents.length > 0
+  const events = sessionEvents
 
   const eventTypeOptions = getUniqueValues(events, "event_type")
   const paidOptions = getUniqueValues(events, "paid")
@@ -310,7 +295,6 @@ export function UploadPage({
     setValidationDialogOpen(false)
     setPendingValidation(null)
     setPendingParseResult(null)
-    setUploadState("uploaded")
     setPage(1)
 
     const uploadedAt = new Date().toISOString()
@@ -345,7 +329,6 @@ export function UploadPage({
   }
 
   const handleClearEvents = () => {
-    setUploadState("idle")
     setUploadedFileName("")
     setParseResult(null)
     setShowTable(true)
@@ -356,6 +339,7 @@ export function UploadPage({
     setFilterGroupType("all")
     setFilterCity("all")
     setPage(1)
+    setSessionEvents([], new Date().toISOString())
     onEventsChange?.([])
   }
 
@@ -382,7 +366,14 @@ export function UploadPage({
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
 
-          {uploadState === "uploaded" && (
+          {loadingData && (
+            <div className="flex items-center justify-center py-16 text-muted-foreground gap-2">
+              <Loader2 className="h-5 w-5 animate-spin" />
+              <span className="text-sm">Loading events...</span>
+            </div>
+          )}
+
+          {!loadingData && isLoaded && (
             <Card className="border-border">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
@@ -391,7 +382,7 @@ export function UploadPage({
                     <div>
                       <CardTitle className="text-lg">Loaded Events</CardTitle>
                       <CardDescription className="mt-0.5">
-                        {events.length} events parsed from CSV
+                        {events.length} event{events.length !== 1 ? "s" : ""} loaded
                       </CardDescription>
                     </div>
                   </div>
@@ -590,7 +581,7 @@ export function UploadPage({
                   <CardTitle className="text-lg">Upload Events File</CardTitle>
                   <CardDescription>Supports CSV format.</CardDescription>
                 </div>
-                {uploadState === "uploaded" && (
+                {isLoaded && (
                   <Button
                     variant="ghost"
                     size="sm"
@@ -611,7 +602,7 @@ export function UploadPage({
                 className={`relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed py-6 px-6 text-center transition-all duration-200 ${
                   isDragOver
                     ? "border-primary bg-primary/5"
-                    : uploadState === "uploaded"
+                    : isLoaded
                     ? "border-chart-4/50 bg-chart-4/5"
                     : "border-border bg-muted/20 hover:border-primary/50 hover:bg-muted/30"
                 }`}
@@ -623,12 +614,14 @@ export function UploadPage({
                   className="absolute inset-0 cursor-pointer opacity-0"
                 />
 
-                {uploadState === "uploaded" ? (
+                {isLoaded ? (
                   <>
                     <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-chart-4/15">
                       <CheckCircle2 className="h-5 w-5 text-chart-4" />
                     </div>
-                    <p className="font-semibold text-sm text-foreground">{uploadedFileName}</p>
+                    <p className="font-semibold text-sm text-foreground">
+                      {uploadedFileName || `${events.length} events loaded`}
+                    </p>
                     <p className="mt-0.5 text-xs text-muted-foreground">
                       {events.length} events loaded successfully
                     </p>
@@ -666,7 +659,7 @@ export function UploadPage({
             </CardContent>
           </Card>
 
-          {uploadState === "uploaded" && (
+          {isLoaded && (
             <Card className="border-border">
               <CardHeader>
                 <div className="flex items-center gap-2">
