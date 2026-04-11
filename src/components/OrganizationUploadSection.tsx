@@ -1,9 +1,11 @@
-import { useState } from "react"
-import { Upload, Building2, CircleCheck as CheckCircle2, ChevronUp, ChevronDown, ExternalLink, FileText, Trash2, Loader as Loader2 } from "lucide-react"
+import { useState, useMemo } from "react"
+import { Upload, Building2, CircleCheck as CheckCircle2, ChevronUp, ChevronDown, ExternalLink, FileText, Trash2, Loader as Loader2, Search, X } from "lucide-react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { parseOrganizationsCSV } from "@/utils/csvParser"
@@ -183,12 +185,40 @@ export function OrganizationUploadSection({ onOrganizationsChange }: Organizatio
   const [, setParseResult] = useState<OrgParseResult | null>(null)
   const [showTable, setShowTable] = useState(true)
   const [showColumnsInfo, setShowColumnsInfo] = useState(true)
+  const [orgSearch, setOrgSearch] = useState("")
+  const [orgFilterCategory, setOrgFilterCategory] = useState("all")
   const [validationDialogOpen, setValidationDialogOpen] = useState(false)
   const [pendingValidation, setPendingValidation] = useState<ValidationResult | null>(null)
   const [pendingParseResult, setPendingParseResult] = useState<OrgParseResult | null>(null)
 
   const organizations = sessionOrganizations
   const isLoaded = organizations.length > 0
+
+  const categoryOptions = useMemo(() => {
+    const vals = new Set<string>()
+    for (const o of organizations) {
+      if (o.category) vals.add(o.category)
+    }
+    return Array.from(vals).sort()
+  }, [organizations])
+
+  const filteredOrgs = useMemo(() => {
+    const q = orgSearch.toLowerCase()
+    return organizations.filter((o) => {
+      if (orgFilterCategory !== "all" && o.category !== orgFilterCategory) return false
+      if (q) {
+        const match =
+          o.name?.toLowerCase().includes(q) ||
+          o.category?.toLowerCase().includes(q) ||
+          o.city?.toLowerCase().includes(q) ||
+          o.description?.toLowerCase().includes(q) ||
+          o.notes?.toLowerCase().includes(q) ||
+          o.internal_type?.toLowerCase().includes(q)
+        if (!match) return false
+      }
+      return true
+    })
+  }, [organizations, orgSearch, orgFilterCategory])
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
@@ -275,8 +305,8 @@ export function OrganizationUploadSection({ onOrganizationsChange }: Organizatio
   }
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-      <div className="lg:col-span-2 space-y-6">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_280px]">
+      <div className="space-y-6">
         {loadingData && (
           <div className="flex items-center justify-center py-16 text-muted-foreground gap-2">
             <Loader2 className="h-5 w-5 animate-spin" />
@@ -318,11 +348,65 @@ export function OrganizationUploadSection({ onOrganizationsChange }: Organizatio
               </div>
             </CardHeader>
             {showTable && (
-              <CardContent>
-                <div className="flex items-center justify-between text-sm text-muted-foreground mb-3">
-                  <span>{organizations.length} organization{organizations.length !== 1 ? "s" : ""}</span>
+              <CardContent className="space-y-4">
+                <div className="flex flex-wrap gap-3">
+                  <div className="relative flex-1 min-w-[180px]">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                    <Input
+                      placeholder="Search organizations..."
+                      value={orgSearch}
+                      onChange={(e) => setOrgSearch(e.target.value)}
+                      className="pl-9 h-9"
+                    />
+                    {orgSearch && (
+                      <button
+                        onClick={() => setOrgSearch("")}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                  </div>
+                  {categoryOptions.length > 0 && (
+                    <Select value={orgFilterCategory} onValueChange={setOrgFilterCategory}>
+                      <SelectTrigger className="h-9 w-[160px]">
+                        <SelectValue placeholder="All Categories" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Categories</SelectItem>
+                        {categoryOptions.map((c) => (
+                          <SelectItem key={c} value={c}>{c}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                  {(orgSearch || orgFilterCategory !== "all") && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => { setOrgSearch(""); setOrgFilterCategory("all") }}
+                      className="h-9 gap-1.5 text-muted-foreground"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                      Clear
+                    </Button>
+                  )}
                 </div>
-                <OrgTable organizations={organizations} />
+                <div className="text-sm text-muted-foreground">
+                  <span>
+                    {filteredOrgs.length === organizations.length
+                      ? `${organizations.length} organization${organizations.length !== 1 ? "s" : ""} loaded`
+                      : `${filteredOrgs.length} of ${organizations.length} organizations`}
+                  </span>
+                </div>
+                {filteredOrgs.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                    <Search className="h-8 w-8 mb-3 opacity-40" />
+                    <p className="text-sm">No organizations match your filters.</p>
+                  </div>
+                ) : (
+                  <OrgTable organizations={filteredOrgs} />
+                )}
               </CardContent>
             )}
           </Card>

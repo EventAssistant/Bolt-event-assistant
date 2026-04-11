@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react"
-import { Upload, FileText, CircleCheck as CheckCircle2, CircleAlert as AlertCircle, ChevronUp, ChevronDown, Table2, Search, X, ChevronLeft, ChevronRight, ExternalLink, TriangleAlert, Trash2, Loader as Loader2 } from "lucide-react"
+import { Upload, FileText, CircleCheck as CheckCircle2, CircleAlert as AlertCircle, ChevronUp, ChevronDown, Table2, Search, X, ExternalLink, TriangleAlert, Trash2, Loader as Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -42,7 +42,6 @@ const CSV_COLUMNS = [
   "subcategory",
 ]
 
-const PAGE_SIZE = 20
 
 function downloadSampleEventCSV() {
   const sampleData = [
@@ -199,7 +198,6 @@ export function UploadPage({
   const [filterParticipation, setFilterParticipation] = useState("all")
   const [filterGroupType, setFilterGroupType] = useState("all")
   const [filterCity, setFilterCity] = useState("all")
-  const [page, setPage] = useState(1)
   const [validationDialogOpen, setValidationDialogOpen] = useState(false)
   const [pendingValidation, setPendingValidation] = useState<ValidationResult | null>(null)
   const [pendingParseResult, setPendingParseResult] = useState<ParseResult | null>(null)
@@ -234,10 +232,6 @@ export function UploadPage({
     })
   }, [events, search, filterEventType, filterPaid, filterParticipation, filterGroupType, filterCity])
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
-  const currentPage = Math.min(page, totalPages)
-  const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
-
   const resetFilters = () => {
     setSearch("")
     setFilterEventType("all")
@@ -245,7 +239,6 @@ export function UploadPage({
     setFilterParticipation("all")
     setFilterGroupType("all")
     setFilterCity("all")
-    setPage(1)
   }
 
   const hasActiveFilters =
@@ -295,7 +288,6 @@ export function UploadPage({
     setValidationDialogOpen(false)
     setPendingValidation(null)
     setPendingParseResult(null)
-    setPage(1)
 
     const uploadedAt = new Date().toISOString()
     let dbResult: UpsertResult = { inserted: validationPassedEvents.length, skipped: 0 }
@@ -338,7 +330,6 @@ export function UploadPage({
     setFilterParticipation("all")
     setFilterGroupType("all")
     setFilterCity("all")
-    setPage(1)
     setSessionEvents([], new Date().toISOString())
     onEventsChange?.([])
   }
@@ -363,8 +354,8 @@ export function UploadPage({
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_280px]">
+        <div className="space-y-6">
 
           {loadingData && (
             <div className="flex items-center justify-center py-16 text-muted-foreground gap-2">
@@ -415,12 +406,12 @@ export function UploadPage({
                       <Input
                         placeholder="Search events, orgs, cities..."
                         value={search}
-                        onChange={(e) => { setSearch(e.target.value); setPage(1) }}
+                        onChange={(e) => setSearch(e.target.value)}
                         className="pl-9 h-9"
                       />
                       {search && (
                         <button
-                          onClick={() => { setSearch(""); setPage(1) }}
+                          onClick={() => setSearch("")}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                         >
                           <X className="h-3.5 w-3.5" />
@@ -428,7 +419,7 @@ export function UploadPage({
                       )}
                     </div>
 
-                    <Select value={filterEventType} onValueChange={(v) => { setFilterEventType(v); setPage(1) }}>
+                    <Select value={filterEventType} onValueChange={setFilterEventType}>
                       <SelectTrigger className="h-9 w-[140px]">
                         <SelectValue placeholder="Event Type" />
                       </SelectTrigger>
@@ -440,7 +431,7 @@ export function UploadPage({
                       </SelectContent>
                     </Select>
 
-                    <Select value={filterPaid} onValueChange={(v) => { setFilterPaid(v); setPage(1) }}>
+                    <Select value={filterPaid} onValueChange={setFilterPaid}>
                       <SelectTrigger className="h-9 w-[120px]">
                         <SelectValue placeholder="Cost" />
                       </SelectTrigger>
@@ -452,7 +443,7 @@ export function UploadPage({
                       </SelectContent>
                     </Select>
 
-                    <Select value={filterParticipation} onValueChange={(v) => { setFilterParticipation(v); setPage(1) }}>
+                    <Select value={filterParticipation} onValueChange={setFilterParticipation}>
                       <SelectTrigger className="h-9 w-[130px]">
                         <SelectValue placeholder="Format" />
                       </SelectTrigger>
@@ -464,7 +455,7 @@ export function UploadPage({
                       </SelectContent>
                     </Select>
 
-                    <Select value={filterGroupType} onValueChange={(v) => { setFilterGroupType(v); setPage(1) }}>
+                    <Select value={filterGroupType} onValueChange={setFilterGroupType}>
                       <SelectTrigger className="h-9 w-[150px]">
                         <SelectValue placeholder="Group Type" />
                       </SelectTrigger>
@@ -477,7 +468,7 @@ export function UploadPage({
                     </Select>
 
                     {cityOptions.length > 1 && (
-                      <Select value={filterCity} onValueChange={(v) => { setFilterCity(v); setPage(1) }}>
+                      <Select value={filterCity} onValueChange={setFilterCity}>
                         <SelectTrigger className="h-9 w-[130px]">
                           <SelectValue placeholder="City" />
                         </SelectTrigger>
@@ -498,17 +489,12 @@ export function UploadPage({
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between text-sm text-muted-foreground">
+                  <div className="text-sm text-muted-foreground">
                     <span>
                       {filtered.length === events.length
-                        ? `${events.length} events`
+                        ? `${events.length} events loaded`
                         : `${filtered.length} of ${events.length} events`}
                     </span>
-                    {filtered.length > PAGE_SIZE && (
-                      <span>
-                        Page {currentPage} of {totalPages}
-                      </span>
-                    )}
                   </div>
 
                   {filtered.length === 0 ? (
@@ -520,52 +506,7 @@ export function UploadPage({
                       </Button>
                     </div>
                   ) : (
-                    <EventTable events={paginated} />
-                  )}
-
-                  {totalPages > 1 && (
-                    <div className="flex items-center justify-center gap-2 pt-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setPage((p) => Math.max(1, p - 1))}
-                        disabled={currentPage === 1}
-                        className="h-8 w-8 p-0"
-                      >
-                        <ChevronLeft className="h-4 w-4" />
-                      </Button>
-                      {Array.from({ length: totalPages }, (_, i) => i + 1)
-                        .filter((p) => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
-                        .reduce<(number | "...")[]>((acc, p, idx, arr) => {
-                          if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push("...")
-                          acc.push(p)
-                          return acc
-                        }, [])
-                        .map((p, idx) =>
-                          p === "..." ? (
-                            <span key={`ellipsis-${idx}`} className="px-1 text-muted-foreground text-sm">...</span>
-                          ) : (
-                            <Button
-                              key={p}
-                              variant={p === currentPage ? "default" : "outline"}
-                              size="sm"
-                              onClick={() => setPage(p as number)}
-                              className="h-8 w-8 p-0"
-                            >
-                              {p}
-                            </Button>
-                          )
-                        )}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                        disabled={currentPage === totalPages}
-                        className="h-8 w-8 p-0"
-                      >
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    <EventTable events={filtered} />
                   )}
                 </CardContent>
               )}
