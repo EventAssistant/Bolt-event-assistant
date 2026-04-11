@@ -13,6 +13,7 @@ import {
   ChevronRight,
   ExternalLink,
   TriangleAlert,
+  Trash2,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -277,6 +278,21 @@ export function UploadPage({
     reader.readAsText(file)
   }
 
+  const handleClearEvents = () => {
+    setUploadState("idle")
+    setUploadedFileName("")
+    setParseResult(null)
+    setShowTable(true)
+    setSearch("")
+    setFilterEventType("all")
+    setFilterPaid("all")
+    setFilterParticipation("all")
+    setFilterGroupType("all")
+    setFilterCity("all")
+    setPage(1)
+    onEventsChange?.([])
+  }
+
   const freeCount = events.filter((e) => e.paid === "Free").length
   const paidCount = events.filter((e) => e.paid === "Paid").length
 
@@ -503,8 +519,23 @@ export function UploadPage({
         <div className="space-y-6">
           <Card className="border-border">
             <CardHeader>
-              <CardTitle className="text-lg">Upload Events File</CardTitle>
-              <CardDescription>Supports CSV format.</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg">Upload Events File</CardTitle>
+                  <CardDescription>Supports CSV format.</CardDescription>
+                </div>
+                {uploadState === "uploaded" && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleClearEvents}
+                    className="gap-1.5 text-muted-foreground hover:text-destructive h-8 px-2"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    <span className="text-xs">Clear</span>
+                  </Button>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
               <div

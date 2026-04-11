@@ -7,6 +7,7 @@ import {
   ChevronDown,
   ExternalLink,
   FileText,
+  Trash2,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -209,6 +210,14 @@ export function OrganizationUploadSection({ onOrganizationsChange }: Organizatio
     reader.readAsText(file)
   }
 
+  const handleClearOrganizations = () => {
+    setUploadState("idle")
+    setUploadedFileName("")
+    setParseResult(null)
+    setShowTable(true)
+    onOrganizationsChange?.([])
+  }
+
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
       <div className="lg:col-span-2 space-y-6">
@@ -268,8 +277,23 @@ export function OrganizationUploadSection({ onOrganizationsChange }: Organizatio
       <div className="space-y-6">
         <Card className="border-border">
           <CardHeader>
-            <CardTitle className="text-lg">Upload Organizations List</CardTitle>
-            <CardDescription>Supports CSV format with organization data.</CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg">Upload Organizations List</CardTitle>
+                <CardDescription>Supports CSV format with organization data.</CardDescription>
+              </div>
+              {uploadState === "uploaded" && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleClearOrganizations}
+                  className="gap-1.5 text-muted-foreground hover:text-destructive h-8 px-2"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  <span className="text-xs">Clear</span>
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             <div
