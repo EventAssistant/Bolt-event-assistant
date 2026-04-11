@@ -28,13 +28,13 @@ function parseEventDateTime(event: Event): { start: Date | null; end: Date | nul
     const { h: eh, m: em2 } = parseTime(event.end_time)
     end = new Date(ey, em - 1, ed, eh, em2, 0)
   } else {
-    end = new Date(start.getTime() + 2 * 60 * 60 * 1000)
+    end = new Date(start.getTime() + 60 * 60 * 1000)
   }
 
   return { start, end }
 }
 
-function toGoogleDatetime(d: Date): string {
+function toCompactDatetime(d: Date): string {
   const pad = (n: number) => String(n).padStart(2, "0")
   return (
     `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}` +
@@ -42,11 +42,11 @@ function toGoogleDatetime(d: Date): string {
   )
 }
 
-function toIcsDatetime(d: Date): string {
+function toIsoDatetime(d: Date): string {
   const pad = (n: number) => String(n).padStart(2, "0")
   return (
-    `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}` +
-    `T${pad(d.getHours())}${pad(d.getMinutes())}00`
+    `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` +
+    `T${pad(d.getHours())}:${pad(d.getMinutes())}:00`
   )
 }
 
@@ -57,12 +57,47 @@ export function buildGoogleCalendarUrl(event: Event): string {
   const params = new URLSearchParams({
     action: "TEMPLATE",
     text: event.name,
-    dates: `${toGoogleDatetime(start)}/${toGoogleDatetime(end)}`,
+    dates: `${toCompactDatetime(start)}/${toCompactDatetime(end)}`,
     details: [event.description, event.website].filter(Boolean).join("\n\n"),
     location: [event.address, event.event_city, event.state].filter(Boolean).join(", "),
   })
 
   return `https://calendar.google.com/calendar/render?${params.toString()}`
+}
+
+function buildOutlookCalendarUrl(event: Event, office365 = false): string {
+  const { start, end } = parseEventDateTime(event)
+  if (!start || !end) return ""
+
+  const base = office365
+    ? "https://outlook.office.com/calendar/0/deeplink/compose"
+    : "https://outlook.live.com/calendar/0/deeplink/compose"
+
+  const params = new URLSearchParams({
+    subject: event.name,
+    startdt: toIsoDatetime(start),
+    enddt: toIsoDatetime(end),
+    body: [event.description, event.website].filter(Boolean).join("\n\n"),
+    location: [event.address, event.event_city, event.state].filter(Boolean).join(", "),
+  })
+
+  return `${base}?${params.toString()}`
+}
+
+function buildYahooCalendarUrl(event: Event): string {
+  const { start, end } = parseEventDateTime(event)
+  if (!start || !end) return ""
+
+  const params = new URLSearchParams({
+    v: "60",
+    title: event.name,
+    st: toCompactDatetime(start),
+    et: toCompactDatetime(end),
+    desc: [event.description, event.website].filter(Boolean).join("\n\n"),
+    in_loc: [event.address, event.event_city, event.state].filter(Boolean).join(", "),
+  })
+
+  return `https://calendar.yahoo.com/?${params.toString()}`
 }
 
 function icsEscape(str: string): string {
@@ -73,7 +108,7 @@ export function buildIcsContent(event: Event): string {
   const { start, end } = parseEventDateTime(event)
   if (!start || !end) return ""
 
-  const now = toIcsDatetime(new Date())
+  const now = toCompactDatetime(new Date())
   const uid = `event-${event.id || Date.now()}@networkmatch`
 
   const lines = [
@@ -85,8 +120,8 @@ export function buildIcsContent(event: Event): string {
     "BEGIN:VEVENT",
     `UID:${uid}`,
     `DTSTAMP:${now}`,
-    `DTSTART:${toIcsDatetime(start)}`,
-    `DTEND:${toIcsDatetime(end)}`,
+    `DTSTART:${toCompactDatetime(start)}`,
+    `DTEND:${toCompactDatetime(end)}`,
     `SUMMARY:${icsEscape(event.name)}`,
     `DESCRIPTION:${icsEscape([event.description, event.website].filter(Boolean).join("\\n\\n"))}`,
     `LOCATION:${icsEscape([event.address, event.event_city, event.state].filter(Boolean).join(", "))}`,
@@ -108,4 +143,30 @@ export function downloadIcs(event: Event, filename?: string): void {
   a.download = filename || `${event.name.replace(/[^a-z0-9]/gi, "_")}.ics`
   a.click()
   URL.revokeObjectURL(url)
+}
+
+// DUAL CALENDAR SYSTEM — addevent for in-app, static links for email. Do not merge these.
+export function generateEmailCalendarBlock(event: Event): string {
+  if (!event.start_date) return ""
+
+  const googleUrl = buildGoogleCalendarUrl(event)
+  const outlookUrl = buildOutlookCalendarUrl(event, false)
+  const o365Url = buildOutlookCalendarUrl(event, true)
+  const yahooUrl = buildYahooCalendarUrl(event)
+  const icsContent = buildIcsContent(event)
+  const icsDataUrl = icsContent
+    ? `data:text/calendar;charset=utf8,${encodeURIComponent(icsContent)}`
+    : ""
+
+  const btnStyle = "display:inline-block; margin:4px 6px 4px 0; padding:8px 14px; text-decoration:none; border-radius:4px; font-size:13px; color:#ffffff;"
+
+  return `
+<div style="margin: 12px 0;">
+  <p style="font-weight: bold; margin-bottom: 6px;">📅 Add to Your Calendar:</p>
+  ${googleUrl ? `<a href="${googleUrl}" target="_blank" style="${btnStyle} background:#4285F4;">Google Calendar</a>` : ""}
+  ${outlookUrl ? `<a href="${outlookUrl}" target="_blank" style="${btnStyle} background:#0078D4;">Outlook.com</a>` : ""}
+  ${o365Url ? `<a href="${o365Url}" target="_blank" style="${btnStyle} background:#D83B01;">Microsoft 365</a>` : ""}
+  ${icsDataUrl ? `<a href="${icsDataUrl}" target="_blank" style="${btnStyle} background:#555555;">Apple / iCal</a>` : ""}
+  ${yahooUrl ? `<a href="${yahooUrl}" target="_blank" style="${btnStyle} background:#6001D2;">Yahoo Calendar</a>` : ""}
+</div>`
 }

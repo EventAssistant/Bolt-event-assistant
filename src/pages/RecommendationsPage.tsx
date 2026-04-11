@@ -27,7 +27,7 @@ import type { ClientProfile, Event, Organization } from "@/types"
 import type { AIRecommendation, OrgRecommendation } from "@/contexts/SessionContext"
 import { useSession } from "@/contexts/SessionContext"
 import { AddToCalendarButton } from "@/components/AddToCalendarButton"
-import { buildGoogleCalendarUrl } from "@/utils/calendarUtils"
+import { generateEmailCalendarBlock } from "@/utils/calendarUtils"
 import { EmailReportButton } from "@/components/EmailReportButton"
 import { EmailSettingsModal } from "@/components/EmailSettingsModal"
 
@@ -350,10 +350,9 @@ function generateReportHTML(
         ev?.event_city,
         ev?.paid ? `Cost: ${ev.paid}` : null,
       ].filter(Boolean)
-      const googleUrl = ev ? buildGoogleCalendarUrl(ev) : ""
+      const calendarBlock = ev ? generateEmailCalendarBlock(ev) : ""
       const eventButtons = [
         eventUrl ? `<a href="${eventUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-block; padding: 0.3rem 0.75rem; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.8rem; color: #374151; text-decoration: none;">🌐 View Event</a>` : "",
-        googleUrl ? `<a href="${googleUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-block; padding: 0.3rem 0.75rem; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.8rem; color: #374151; text-decoration: none;">📅 Google Calendar</a>` : "",
       ].filter(Boolean).join(" ")
       return `
     <div style="margin-bottom: 2rem; padding: 1rem; border: 1px solid #e5e7eb; border-radius: 0.5rem;">
@@ -362,6 +361,7 @@ function generateReportHTML(
       </div>
       ${metaParts.length > 0 ? `<p style="color: #888; font-size: 0.875rem; margin: 0.25rem 0 0.75rem;">${metaParts.join(" · ")}</p>` : ""}
       ${eventButtons ? `<div style="margin: 0.5rem 0 0.75rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">${eventButtons}</div>` : ""}
+      ${calendarBlock}
       <p style="color: #666; margin: 0.75rem 0 0.5rem;"><strong>Why:</strong> ${rec.why_this_event}</p>
       <p style="color: #666; margin: 0.5rem 0;"><strong>Who:</strong> ${rec.who_youll_meet}</p>
       <div style="margin: 0.5rem 0;">
