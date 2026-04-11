@@ -22,6 +22,8 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { parseCSV } from "@/utils/csvParser"
+import { validateEventRows, type ValidationResult } from "@/utils/csvValidation"
+import { CsvValidationDialog } from "@/components/CsvValidationDialog"
 import { OrganizationUploadSection } from "@/components/OrganizationUploadSection"
 import type { Event, ParseResult, Organization } from "@/types"
 
@@ -198,6 +200,9 @@ export function UploadPage({
   const [filterGroupType, setFilterGroupType] = useState("all")
   const [filterCity, setFilterCity] = useState("all")
   const [page, setPage] = useState(1)
+  const [validationDialogOpen, setValidationDialogOpen] = useState(false)
+  const [pendingValidation, setPendingValidation] = useState<ValidationResult | null>(null)
+  const [pendingParseResult, setPendingParseResult] = useState<ParseResult | null>(null)
 
   const events = parseResult ? parseResult.events : []
 
@@ -270,12 +275,38 @@ export function UploadPage({
     reader.onload = (ev) => {
       const text = ev.target?.result as string
       const result = parseCSV(text)
-      setParseResult(result)
-      onEventsChange?.(result.events)
-      setUploadState("uploaded")
-      setPage(1)
+      const validation = validateEventRows(result.rawRows)
+
+      setPendingValidation(validation)
+      setPendingParseResult(result)
+      setValidationDialogOpen(true)
     }
     reader.readAsText(file)
+  }
+
+  const handleValidationConfirm = () => {
+    if (!pendingParseResult || !pendingValidation) return
+    const validSet = new Set(pendingValidation.validIndices)
+    const filteredEvents = pendingParseResult.events.filter((_, i) => validSet.has(i))
+    const filteredResult: ParseResult = {
+      ...pendingParseResult,
+      events: filteredEvents,
+      skippedRows: pendingParseResult.events.length - filteredEvents.length,
+    }
+    setParseResult(filteredResult)
+    onEventsChange?.(filteredResult.events)
+    setUploadState("uploaded")
+    setPage(1)
+    setValidationDialogOpen(false)
+    setPendingValidation(null)
+    setPendingParseResult(null)
+  }
+
+  const handleValidationCancel = () => {
+    setValidationDialogOpen(false)
+    setPendingValidation(null)
+    setPendingParseResult(null)
+    setUploadedFileName("")
   }
 
   const handleClearEvents = () => {
@@ -719,6 +750,18 @@ export function UploadPage({
         </div>
         <OrganizationUploadSection onOrganizationsChange={onOrganizationsChange} />
       </div>
+
+      {pendingValidation && (
+        <CsvValidationDialog
+          open={validationDialogOpen}
+          onOpenChange={setValidationDialogOpen}
+          validation={pendingValidation}
+          totalRows={pendingParseResult?.rawRows.length ?? 0}
+          onUploadValid={handleValidationConfirm}
+          onCancel={handleValidationCancel}
+          label="events"
+        />
+      )}
     </div>
   )
 }

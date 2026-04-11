@@ -15,6 +15,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { parseOrganizationsCSV } from "@/utils/csvParser"
+import { validateOrgRows, type ValidationResult } from "@/utils/csvValidation"
+import { CsvValidationDialog } from "@/components/CsvValidationDialog"
 import type { Organization, OrgParseResult } from "@/types"
 
 const ORG_CSV_COLUMNS_PRIMARY = [
@@ -175,6 +177,9 @@ export function OrganizationUploadSection({ onOrganizationsChange }: Organizatio
   const [uploadedFileName, setUploadedFileName] = useState("")
   const [parseResult, setParseResult] = useState<OrgParseResult | null>(null)
   const [showTable, setShowTable] = useState(true)
+  const [validationDialogOpen, setValidationDialogOpen] = useState(false)
+  const [pendingValidation, setPendingValidation] = useState<ValidationResult | null>(null)
+  const [pendingParseResult, setPendingParseResult] = useState<OrgParseResult | null>(null)
 
   const organizations = parseResult?.organizations ?? []
 
@@ -203,11 +208,37 @@ export function OrganizationUploadSection({ onOrganizationsChange }: Organizatio
     reader.onload = (ev) => {
       const text = ev.target?.result as string
       const result = parseOrganizationsCSV(text)
-      setParseResult(result)
-      onOrganizationsChange?.(result.organizations)
-      setUploadState("uploaded")
+      const validation = validateOrgRows(result.rawRows)
+
+      setPendingValidation(validation)
+      setPendingParseResult(result)
+      setValidationDialogOpen(true)
     }
     reader.readAsText(file)
+  }
+
+  const handleValidationConfirm = () => {
+    if (!pendingParseResult || !pendingValidation) return
+    const validSet = new Set(pendingValidation.validIndices)
+    const filteredOrgs = pendingParseResult.organizations.filter((_, i) => validSet.has(i))
+    const filteredResult: OrgParseResult = {
+      ...pendingParseResult,
+      organizations: filteredOrgs,
+      skippedRows: pendingParseResult.organizations.length - filteredOrgs.length,
+    }
+    setParseResult(filteredResult)
+    onOrganizationsChange?.(filteredResult.organizations)
+    setUploadState("uploaded")
+    setValidationDialogOpen(false)
+    setPendingValidation(null)
+    setPendingParseResult(null)
+  }
+
+  const handleValidationCancel = () => {
+    setValidationDialogOpen(false)
+    setPendingValidation(null)
+    setPendingParseResult(null)
+    setUploadedFileName("")
   }
 
   const handleClearOrganizations = () => {
@@ -392,6 +423,18 @@ export function OrganizationUploadSection({ onOrganizationsChange }: Organizatio
           </CardContent>
         </Card>
       </div>
+
+      {pendingValidation && (
+        <CsvValidationDialog
+          open={validationDialogOpen}
+          onOpenChange={setValidationDialogOpen}
+          validation={pendingValidation}
+          totalRows={pendingParseResult?.rawRows.length ?? 0}
+          onUploadValid={handleValidationConfirm}
+          onCancel={handleValidationCancel}
+          label="organizations"
+        />
+      )}
     </div>
   )
 }

@@ -83,6 +83,7 @@ export interface OrgParseResult {
   warnings: string[]
   totalRows: number
   skippedRows: number
+  rawRows: Array<Record<string, string>>
 }
 
 export interface ParseResult {
@@ -90,4 +91,5 @@ export interface ParseResult {
   warnings: string[]
   totalRows: number
   skippedRows: number
+  rawRows: Array<Record<string, string>>
 }

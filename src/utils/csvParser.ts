@@ -224,7 +224,7 @@ function isValidUrl(url: string): boolean {
 export function parseCSV(csvText: string): ParseResult {
   const rows = parseCSVText(csvText)
   if (rows.length < 2) {
-    return { events: [], warnings: ["CSV file appears to be empty or has no data rows."], totalRows: 0, skippedRows: 0 }
+    return { events: [], warnings: ["CSV file appears to be empty or has no data rows."], totalRows: 0, skippedRows: 0, rawRows: [] }
   }
 
   const headerRow = rows[0]
@@ -240,6 +240,7 @@ export function parseCSV(csvText: string): ParseResult {
 
   const warnings: string[] = []
   const events: Event[] = []
+  const rawRows: Array<Record<string, string>> = []
   const seenIds = new Set<string>()
   let skippedRows = 0
   const dataRows = rows.slice(1).filter((r) => r.some((cell) => cell.trim() !== ""))
@@ -254,6 +255,8 @@ export function parseCSV(csvText: string): ParseResult {
         raw[field] = row[col]
       }
     }
+
+    rawRows.push(raw as Record<string, string>)
 
     const id = normalizeEmpty(raw.id ?? "") || String(rowIdx + 1)
 
@@ -277,7 +280,6 @@ export function parseCSV(csvText: string): ParseResult {
     }
 
     const event: Event = {
-      // Primary matching fields
       id,
       name: normalizeEmpty(raw.name ?? ""),
       start_date,
@@ -288,8 +290,6 @@ export function parseCSV(csvText: string): ParseResult {
       paid: normalizePaid(raw.paid ?? ""),
       description: normalizeEmpty(raw.description ?? ""),
       website,
-
-      // Extended fields — Reserved for future matching enhancement — available in state
       end_date,
       end_time: normalizeTime(raw.end_time ?? ""),
       city_calendar: normalizeEmpty(raw.city_calendar ?? ""),
@@ -316,6 +316,7 @@ export function parseCSV(csvText: string): ParseResult {
     warnings,
     totalRows: dataRows.length,
     skippedRows,
+    rawRows,
   }
 }
 
@@ -369,7 +370,7 @@ const ORG_COLUMN_ALIASES: Record<string, keyof Organization> = {
 export function parseOrganizationsCSV(csvText: string): OrgParseResult {
   const rows = parseCSVText(csvText)
   if (rows.length < 2) {
-    return { organizations: [], warnings: ["CSV file appears to be empty or has no data rows."], totalRows: 0, skippedRows: 0 }
+    return { organizations: [], warnings: ["CSV file appears to be empty or has no data rows."], totalRows: 0, skippedRows: 0, rawRows: [] }
   }
 
   const headerRow = rows[0]
@@ -385,6 +386,7 @@ export function parseOrganizationsCSV(csvText: string): OrgParseResult {
 
   const warnings: string[] = []
   const organizations: Organization[] = []
+  const rawRows: Array<Record<string, string>> = []
   let skippedRows = 0
   const dataRows = rows.slice(1).filter((r) => r.some((cell) => cell.trim() !== ""))
 
@@ -399,6 +401,8 @@ export function parseOrganizationsCSV(csvText: string): OrgParseResult {
       }
     }
 
+    rawRows.push(raw as Record<string, string>)
+
     if (!raw.name?.trim()) {
       warnings.push(`Row ${rowIdx + 2}: Missing name, skipped.`)
       skippedRows++
@@ -406,7 +410,6 @@ export function parseOrganizationsCSV(csvText: string): OrgParseResult {
     }
 
     organizations.push({
-      // Primary matching fields
       name: normalizeEmpty(raw.name ?? ""),
       category: normalizeEmpty(raw.category ?? ""),
       city: normalizeEmpty(raw.city ?? ""),
@@ -414,8 +417,6 @@ export function parseOrganizationsCSV(csvText: string): OrgParseResult {
       home_page: normalizeEmpty(raw.home_page ?? ""),
       internal_type: normalizeEmpty(raw.internal_type ?? ""),
       notes: normalizeEmpty(raw.notes ?? ""),
-
-      // Extended fields — Reserved for future matching enhancement — available in state
       zip_code: normalizeEmpty(raw.zip_code ?? ""),
       address: normalizeEmpty(raw.address ?? ""),
       calendar: normalizeEmpty(raw.calendar ?? ""),
@@ -429,5 +430,6 @@ export function parseOrganizationsCSV(csvText: string): OrgParseResult {
     warnings,
     totalRows: dataRows.length,
     skippedRows,
+    rawRows,
   }
 }
