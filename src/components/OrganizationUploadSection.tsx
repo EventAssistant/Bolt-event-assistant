@@ -191,6 +191,7 @@ export function OrganizationUploadSection({ onOrganizationsChange }: Organizatio
   const [uploadedFileName, setUploadedFileName] = useState("")
   const [parseResult, setParseResult] = useState<OrgParseResult | null>(null)
   const [showTable, setShowTable] = useState(true)
+  const [showColumnsInfo, setShowColumnsInfo] = useState(true)
   const [validationDialogOpen, setValidationDialogOpen] = useState(false)
   const [pendingValidation, setPendingValidation] = useState<ValidationResult | null>(null)
   const [pendingParseResult, setPendingParseResult] = useState<OrgParseResult | null>(null)
@@ -430,41 +431,63 @@ export function OrganizationUploadSection({ onOrganizationsChange }: Organizatio
 
         <Card className="border-border">
           <CardHeader>
-            <div className="flex items-center gap-2">
-              <Building2 className="h-4 w-4 text-primary" />
-              <CardTitle className="text-base">Expected CSV Columns</CardTitle>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Building2 className="h-4 w-4 text-primary" />
+                <CardTitle className="text-base">Expected CSV Columns</CardTitle>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowColumnsInfo(!showColumnsInfo)}
+                className="gap-1.5 text-muted-foreground"
+              >
+                {showColumnsInfo ? (
+                  <>
+                    <ChevronUp className="h-4 w-4" />
+                    Hide
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown className="h-4 w-4" />
+                    Show
+                  </>
+                )}
+              </Button>
             </div>
             <CardDescription>Use these exact lowercase column names in your CSV file.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Primary — Used in AI Matching</p>
-              <ul className="space-y-1.5">
-                {ORG_CSV_COLUMNS_PRIMARY.map((col, i) => (
-                  <li key={col} className="flex items-center gap-3">
-                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-xs font-medium bg-primary/15 text-primary">
-                      {i + 1}
-                    </span>
-                    <code className="text-sm text-foreground font-mono">{col}</code>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <Separator />
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Extended — Stored for Future Use</p>
-              <ul className="space-y-1.5">
-                {ORG_CSV_COLUMNS_EXTENDED.map((col, i) => (
-                  <li key={col} className="flex items-center gap-3">
-                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-xs font-medium bg-muted text-muted-foreground">
-                      {i + 8}
-                    </span>
-                    <code className="text-sm text-muted-foreground font-mono">{col}</code>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </CardContent>
+          {showColumnsInfo && (
+            <CardContent className="space-y-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Primary — Used in AI Matching</p>
+                <ul className="space-y-1.5">
+                  {ORG_CSV_COLUMNS_PRIMARY.map((col, i) => (
+                    <li key={col} className="flex items-center gap-3">
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-xs font-medium bg-primary/15 text-primary">
+                        {i + 1}
+                      </span>
+                      <code className="text-sm text-foreground font-mono">{col}</code>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <Separator />
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Extended — Stored for Future Use</p>
+                <ul className="space-y-1.5">
+                  {ORG_CSV_COLUMNS_EXTENDED.map((col, i) => (
+                    <li key={col} className="flex items-center gap-3">
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-xs font-medium bg-muted text-muted-foreground">
+                        {i + 8}
+                      </span>
+                      <code className="text-sm text-muted-foreground font-mono">{col}</code>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </CardContent>
+          )}
         </Card>
       </div>
 
