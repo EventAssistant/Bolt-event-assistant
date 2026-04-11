@@ -12,7 +12,6 @@ import {
   TrendingUp,
   RefreshCw,
   ChevronRight,
-  Loader as Loader2,
   Building2,
   Activity,
   Download,
@@ -759,15 +758,27 @@ export function RecommendationsPage({
           )}
 
           {loading && (
-            <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-muted/20 px-8 py-16 text-center">
-              <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-              <p className="text-sm font-medium text-foreground">
-                Analyzing {events.length} events
-                {organizations.length > 0 ? ` and ${organizations.length} organizations` : ""}...
+            <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-card px-8 py-20 text-center shadow-sm">
+              <div className="relative mb-8">
+                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 border border-primary/20">
+                  <Sparkles className="h-9 w-9 text-primary animate-pulse" />
+                </div>
+                <div className="absolute -inset-3 rounded-full border border-primary/10 animate-ping opacity-20" />
+              </div>
+              <h2 className="text-xl font-semibold text-foreground mb-3">
+                Analyzing your client's profile
+              </h2>
+              <p className="text-base text-muted-foreground max-w-sm leading-relaxed mb-2">
+                Matching against events and organizations&hellip;
               </p>
-              <p className="text-xs text-muted-foreground mt-1.5">
-                Claude is matching to your client's persona profile
+              <p className="text-sm text-muted-foreground/70">
+                This usually takes 15&ndash;30 seconds
               </p>
+              <div className="mt-8 flex items-center gap-2">
+                <div className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce [animation-delay:0ms]" />
+                <div className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce [animation-delay:150ms]" />
+                <div className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce [animation-delay:300ms]" />
+              </div>
             </div>
           )}
 
@@ -787,7 +798,7 @@ export function RecommendationsPage({
           )}
 
           {!loading && hasRun && recommendations.length > 0 && (
-            <>
+            <div className="animate-in fade-in duration-500 space-y-5">
               <div className="flex items-center gap-3 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">
                 <Sparkles className="h-5 w-5 shrink-0 text-primary" />
                 <div>
@@ -805,11 +816,11 @@ export function RecommendationsPage({
                   <AIRecommendationCard key={`${rec.event_name}-${rec.priority_rank}`} rec={rec} />
                 ))}
               </div>
-            </>
+            </div>
           )}
 
           {!loading && hasRun && orgRecommendations.length > 0 && (
-            <div className="space-y-5 pt-4">
+            <div className="animate-in fade-in duration-500 space-y-5 pt-4">
               <div className="flex items-center gap-3 rounded-xl border border-chart-2/20 bg-chart-2/5 px-4 py-3">
                 <Building2 className="h-5 w-5 shrink-0 text-chart-2" />
                 <div>
