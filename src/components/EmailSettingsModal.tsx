@@ -37,8 +37,8 @@ export function EmailSettingsModal({ open: controlledOpen, onOpenChange }: Email
     setSaved(false)
   }
 
-  const handleSave = () => {
-    updateSettings(form)
+  const handleSave = async () => {
+    await updateSettings(form)
     setSaved(true)
     setTimeout(() => {
       setSaved(false)
