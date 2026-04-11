@@ -27,6 +27,10 @@ function isRowEmpty(row: Record<string, string>): boolean {
   return Object.values(row).every((v) => !v || !v.trim())
 }
 
+function columnExistsInAnyRow(rows: Array<Record<string, string>>, key: string): boolean {
+  return rows.some((row) => key in row)
+}
+
 export function validateEventRows(
   rows: Array<Record<string, string>>,
 ): ValidationResult {
@@ -37,6 +41,9 @@ export function validateEventRows(
     console.log("[CSV Validation] First parsed event row keys:", Object.keys(rows[0]))
     console.log("[CSV Validation] First parsed event row:", rows[0])
   }
+
+  const hasDescriptionCol = columnExistsInAnyRow(rows, "description")
+  const hasEventTypeCol = columnExistsInAnyRow(rows, "event_type")
 
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i]
@@ -50,8 +57,12 @@ export function validateEventRows(
     const result = eventRowSchema.safeParse(row)
     const rowWarnings: string[] = []
 
-    if (!row.description?.trim() && !row.event_type?.trim()) {
+    if (hasDescriptionCol && !row.description?.trim() && hasEventTypeCol && !row.event_type?.trim()) {
       rowWarnings.push("Missing description and category")
+    } else if (hasDescriptionCol && !row.description?.trim()) {
+      rowWarnings.push("Missing description")
+    } else if (hasEventTypeCol && !row.event_type?.trim()) {
+      rowWarnings.push("Missing category")
     }
 
     if (!result.success) {
@@ -93,17 +104,9 @@ export function validateOrgRows(
     }
 
     const result = orgRowSchema.safeParse(row)
-    const rowWarnings: string[] = []
-
-    if (!row.description?.trim() && !row.notes?.trim()) {
-      rowWarnings.push("Missing description and contact info")
-    }
 
     if (!result.success) {
-      issues.push({ row: csvRow, errors: ["Missing organization name"], warnings: rowWarnings })
-    } else if (rowWarnings.length > 0) {
-      issues.push({ row: csvRow, errors: [], warnings: rowWarnings })
-      validIndices.push(i)
+      issues.push({ row: csvRow, errors: ["Missing organization name"], warnings: [] })
     } else {
       validIndices.push(i)
     }
