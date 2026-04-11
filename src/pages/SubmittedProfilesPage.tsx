@@ -109,6 +109,17 @@ function toClientProfile(row: SubmittedProfileRow): ClientProfile {
   }
 }
 
+function ReportSentBadge({ sentAt }: { sentAt: string }) {
+  const date = new Date(sentAt)
+  const formatted = date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-chart-4/15 border border-chart-4/30 px-2.5 py-1 text-xs font-semibold text-chart-4 shrink-0">
+      <CheckCircle2 className="h-3.5 w-3.5" />
+      Sent {formatted}
+    </span>
+  )
+}
+
 function ProfileCard({
   profile,
   onLoad,
@@ -136,19 +147,24 @@ function ProfileCard({
     .slice(0, 2)
     .toUpperCase()
 
+  const isSent = !!profile.last_report_sent_at
+
   return (
-    <Card className="border-border transition-all duration-200 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5">
+    <Card className={`border-border transition-all duration-200 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 ${isSent ? "border-chart-4/20 bg-chart-4/[0.02]" : ""}`}>
       <CardHeader className="pb-4">
         <div className="flex items-start gap-4">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/15 border border-primary/20">
-            <span className="text-sm font-bold text-primary">{initials || "?"}</span>
+          <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border ${isSent ? "bg-chart-4/15 border-chart-4/25" : "bg-primary/15 border-primary/20"}`}>
+            <span className={`text-sm font-bold ${isSent ? "text-chart-4" : "text-primary"}`}>{initials || "?"}</span>
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-3">
-              <div>
-                <CardTitle className="text-base leading-snug">
-                  {profile.name || "Unnamed Submission"}
-                </CardTitle>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <CardTitle className="text-base leading-snug">
+                    {profile.name || "Unnamed Submission"}
+                  </CardTitle>
+                  {isSent && <ReportSentBadge sentAt={profile.last_report_sent_at!} />}
+                </div>
                 <p className="text-sm text-muted-foreground mt-0.5">
                   {[profile.title, profile.industry].filter(Boolean).join(" · ") || "—"}
                 </p>
@@ -239,9 +255,9 @@ function ProfileCard({
             <Pencil className="h-3.5 w-3.5" />
             Edit
           </Button>
-          <Button onClick={onLoad} className="flex-1 gap-2" size="sm">
+          <Button onClick={onLoad} className={`flex-1 gap-2 ${isSent ? "bg-chart-4/15 text-chart-4 border border-chart-4/30 hover:bg-chart-4/25" : ""}`} variant={isSent ? "outline" : "default"} size="sm">
             <CheckCircle2 className="h-4 w-4" />
-            Load into Client Profile
+            {isSent ? "Load Again" : "Load into Client Profile"}
             <ChevronRight className="h-3.5 w-3.5 ml-auto" />
           </Button>
         </div>
@@ -281,7 +297,7 @@ function LoadingSkeleton() {
 export function SubmittedProfilesPage({
   onLoadProfile,
 }: {
-  onLoadProfile: (profile: ClientProfile) => void
+  onLoadProfile: (profile: ClientProfile, profileId?: string) => void
 }) {
   const navigate = useNavigate()
   const [profiles, setProfiles] = useState<SubmittedProfileRow[]>([])
@@ -307,7 +323,7 @@ export function SubmittedProfilesPage({
   }, [])
 
   const handleLoad = (profile: SubmittedProfileRow) => {
-    onLoadProfile(toClientProfile(profile))
+    onLoadProfile(toClientProfile(profile), profile.id)
     setLoadedId(profile.id)
     setTimeout(() => {
       navigate("/profile")
@@ -348,6 +364,9 @@ export function SubmittedProfilesPage({
     }
   }
 
+  const sentCount = profiles.filter((p) => !!p.last_report_sent_at).length
+  const totalCount = profiles.length
+
   return (
     <div className="mx-auto max-w-7xl px-6 py-8 space-y-8">
       <div className="flex items-start justify-between">
@@ -380,10 +399,29 @@ export function SubmittedProfilesPage({
           </div>
         </div>
       ) : (
-        <div className="space-y-2">
-          <p className="text-sm text-muted-foreground">
-            {profiles.length} submission{profiles.length !== 1 ? "s" : ""}
-          </p>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <p className="text-sm text-muted-foreground">
+                {totalCount} submission{totalCount !== 1 ? "s" : ""}
+              </p>
+              {totalCount > 0 && (
+                <>
+                  <span className="text-border">·</span>
+                  <div className="flex items-center gap-1.5">
+                    {sentCount > 0 ? (
+                      <CheckCircle2 className="h-4 w-4 text-chart-4" />
+                    ) : (
+                      <div className="h-4 w-4 rounded-full border-2 border-muted-foreground/30" />
+                    )}
+                    <span className={`text-sm font-medium ${sentCount > 0 ? "text-chart-4" : "text-muted-foreground"}`}>
+                      {sentCount} of {totalCount} client{totalCount !== 1 ? "s" : ""} processed this week
+                    </span>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {profiles.map((profile) => (
               <div key={profile.id} className="relative">

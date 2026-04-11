@@ -22,7 +22,10 @@ function Recommendations() {
 
 function Submissions() {
   const { setActiveProfile } = useSession()
-  return <SubmittedProfilesPage onLoadProfile={setActiveProfile} />
+  const handleLoadProfile = (profile: import("@/types").ClientProfile, profileId?: string) => {
+    setActiveProfile(profile, profileId ?? null)
+  }
+  return <SubmittedProfilesPage onLoadProfile={handleLoadProfile} />
 }
 
 function Organizations() {

@@ -3,6 +3,7 @@ import type { ClientProfile, Event, Organization } from "@/types"
 import { mockClientProfile } from "@/data/mockEvents"
 
 const PROFILE_STORAGE_KEY = "active_client_profile"
+const PROFILE_ID_STORAGE_KEY = "active_profile_id"
 const EVENTS_STORAGE_KEY = "uploaded_events"
 const ORGANIZATIONS_STORAGE_KEY = "uploaded_organizations"
 const RECOMMENDATIONS_STORAGE_KEY = "ai_recommendations"
@@ -98,11 +99,12 @@ interface SessionContextType {
   events: Event[]
   organizations: Organization[]
   activeProfile: ClientProfile
+  activeProfileId: string | null
   recommendations: AIRecommendation[]
   orgRecommendations: OrgRecommendation[]
   setEvents: (events: Event[]) => void
   setOrganizations: (organizations: Organization[]) => void
-  setActiveProfile: (profile: ClientProfile) => void
+  setActiveProfile: (profile: ClientProfile, profileId?: string | null) => void
   setRecommendations: (recs: AIRecommendation[]) => void
   setOrgRecommendations: (recs: OrgRecommendation[]) => void
   clearRecommendations: () => void
@@ -115,6 +117,9 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [events, setEventsState] = useState<Event[]>(loadStoredEvents)
   const [organizations, setOrganizationsState] = useState<Organization[]>(loadStoredOrganizations)
   const [activeProfile, setActiveProfileState] = useState<ClientProfile>(loadStoredProfile)
+  const [activeProfileId, setActiveProfileIdState] = useState<string | null>(() => {
+    try { return localStorage.getItem(PROFILE_ID_STORAGE_KEY) } catch { return null }
+  })
   const [recommendations, setRecommendationsState] = useState<AIRecommendation[]>(loadStoredRecommendations)
   const [orgRecommendations, setOrgRecommendationsState] = useState<OrgRecommendation[]>(loadStoredOrgRecommendations)
 
@@ -136,12 +141,21 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const setActiveProfile = (profile: ClientProfile) => {
+  const setActiveProfile = (profile: ClientProfile, profileId?: string | null) => {
     setActiveProfileState(profile)
     try {
       localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profile))
     } catch {
       // ignore
+    }
+    if (profileId !== undefined) {
+      setActiveProfileIdState(profileId)
+      try {
+        if (profileId) localStorage.setItem(PROFILE_ID_STORAGE_KEY, profileId)
+        else localStorage.removeItem(PROFILE_ID_STORAGE_KEY)
+      } catch {
+        // ignore
+      }
     }
   }
 
@@ -179,7 +193,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const clearAll = () => {
     setEvents([])
     setOrganizations([])
-    setActiveProfile(mockClientProfile)
+    setActiveProfile(mockClientProfile, null)
     setRecommendations([])
     setOrgRecommendations([])
   }
@@ -189,6 +203,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       events,
       organizations,
       activeProfile,
+      activeProfileId,
       recommendations,
       orgRecommendations,
       setEvents,

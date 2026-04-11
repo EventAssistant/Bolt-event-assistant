@@ -26,4 +26,5 @@ export interface SubmittedProfileRow {
   success_metric_3: string
   geographic_area: string
   submitted_at: string
+  last_report_sent_at: string | null
 }

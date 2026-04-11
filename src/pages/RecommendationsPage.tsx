@@ -29,6 +29,7 @@ import { AddToCalendarButton } from "@/components/AddToCalendarButton"
 import { generateEmailCalendarBlock } from "@/utils/calendarUtils"
 import { EmailReportButton } from "@/components/EmailReportButton"
 import { EmailSettingsModal } from "@/components/EmailSettingsModal"
+import { supabase } from "@/lib/supabase"
 
 function RankBadge({ rank }: { rank: number }) {
   const label = rank === 1 ? "Top Pick" : rank === 2 ? "2nd Choice" : rank === 3 ? "3rd Choice" : `#${rank}`
@@ -557,10 +558,18 @@ export function RecommendationsPage({
   events: Event[]
   organizations: Organization[]
 }) {
-  const { recommendations, orgRecommendations, setRecommendations, setOrgRecommendations, clearRecommendations } = useSession()
+  const { recommendations, orgRecommendations, setRecommendations, setOrgRecommendations, clearRecommendations, activeProfileId } = useSession()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [emailSettingsOpen, setEmailSettingsOpen] = useState(false)
+
+  const handleReportSent = async () => {
+    if (!activeProfileId) return
+    await supabase
+      .from("submitted_profiles")
+      .update({ last_report_sent_at: new Date().toISOString() })
+      .eq("id", activeProfileId)
+  }
 
   const hasRun = recommendations.length > 0 || orgRecommendations.length > 0
 
@@ -853,6 +862,7 @@ export function RecommendationsPage({
                   profile={profile}
                   reportHTML={generateReportHTML(profile, recommendations, orgRecommendations)}
                   onOpenSettings={() => setEmailSettingsOpen(true)}
+                  onSent={handleReportSent}
                 />
               </CardContent>
             </Card>

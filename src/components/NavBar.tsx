@@ -7,6 +7,7 @@ import { useSession } from "@/contexts/SessionContext"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { EmailSettingsModal } from "@/components/EmailSettingsModal"
+import { supabase } from "@/lib/supabase"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -54,9 +55,13 @@ export function NavBar() {
     }
   }
 
-  const handleClearAll = () => {
+  const handleClearAll = async () => {
     clearAll()
     navigate("/upload")
+    await supabase
+      .from("submitted_profiles")
+      .update({ last_report_sent_at: null })
+      .neq("id", "00000000-0000-0000-0000-000000000000")
   }
 
   return (
@@ -137,7 +142,7 @@ export function NavBar() {
                 <AlertDialogHeader>
                   <AlertDialogTitle>Clear all session data?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This will remove all uploaded CSV data, organizations, and reset the client profile. This action cannot be undone.
+                    This will remove all uploaded CSV data, organizations, and reset the client profile. All "Report sent" statuses on submitted profiles will also be cleared, ready for a new week. This action cannot be undone.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

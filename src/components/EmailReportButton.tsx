@@ -9,11 +9,12 @@ interface EmailReportButtonProps {
   profile: ClientProfile
   reportHTML: string
   onOpenSettings: () => void
+  onSent?: () => void
 }
 
 type SendState = "idle" | "sending" | "success" | "error"
 
-export function EmailReportButton({ profile, reportHTML, onOpenSettings }: EmailReportButtonProps) {
+export function EmailReportButton({ profile, reportHTML, onOpenSettings, onSent }: EmailReportButtonProps) {
   const { settings, isConfigured } = useEmailSettings()
   const [sendState, setSendState] = useState<SendState>("idle")
   const [errorMessage, setErrorMessage] = useState("")
@@ -39,6 +40,7 @@ export function EmailReportButton({ profile, reportHTML, onOpenSettings }: Email
       })
 
       setSendState("success")
+      onSent?.()
       setTimeout(() => setSendState("idle"), 5000)
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to send email"
