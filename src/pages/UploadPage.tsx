@@ -665,7 +665,7 @@ export function UploadPage({
                 className="w-full gap-2 text-xs"
               >
                 <FileText className="h-3.5 w-3.5" />
-                Download Sample Events CSV
+                Download Template
               </Button>
             </CardContent>
           </Card>
