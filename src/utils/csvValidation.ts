@@ -1,32 +1,14 @@
 import { z } from "zod"
 
-function isRecognizableDate(val: string): boolean {
-  if (!val || val === "-") return false
-  const d = new Date(val)
-  if (!isNaN(d.getTime())) return true
-  const patterns = [
-    /^\d{4}-\d{1,2}-\d{1,2}$/,
-    /^\d{1,2}\/\d{1,2}\/\d{2,4}$/,
-    /^\d{1,2}-\d{1,2}-\d{2,4}$/,
-    /^[A-Za-z]+ \d{1,2},? \d{4}$/,
-  ]
-  return patterns.some((p) => p.test(val.trim()))
-}
+const nonEmpty = z.string().min(1)
 
 const eventRowSchema = z.object({
-  name: z.string().min(1, "Missing event name"),
-  start_date: z.string().refine(isRecognizableDate, "Missing or unrecognizable date"),
-  address: z.string().min(1, "Missing location/venue"),
-  description: z.string().optional(),
-  event_type: z.string().optional(),
-})
+  name: nonEmpty,
+}).passthrough()
 
 const orgRowSchema = z.object({
-  name: z.string().min(1, "Missing organization name"),
-  category: z.string().min(1, "Missing industry/category"),
-  description: z.string().optional(),
-  notes: z.string().optional(),
-})
+  name: nonEmpty,
+}).passthrough()
 
 export interface RowIssue {
   row: number
@@ -41,15 +23,30 @@ export interface ValidationResult {
   validIndices: number[]
 }
 
+function isRowEmpty(row: Record<string, string>): boolean {
+  return Object.values(row).every((v) => !v || !v.trim())
+}
+
 export function validateEventRows(
   rows: Array<Record<string, string>>,
 ): ValidationResult {
   const issues: RowIssue[] = []
   const validIndices: number[] = []
 
+  if (rows.length > 0) {
+    console.log("[CSV Validation] First parsed event row keys:", Object.keys(rows[0]))
+    console.log("[CSV Validation] First parsed event row:", rows[0])
+  }
+
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i]
     const csvRow = i + 2
+
+    if (isRowEmpty(row)) {
+      issues.push({ row: csvRow, errors: ["Empty row"], warnings: [] })
+      continue
+    }
+
     const result = eventRowSchema.safeParse(row)
     const rowWarnings: string[] = []
 
@@ -58,8 +55,7 @@ export function validateEventRows(
     }
 
     if (!result.success) {
-      const errors = result.error.issues.map((issue) => issue.message)
-      issues.push({ row: csvRow, errors, warnings: rowWarnings })
+      issues.push({ row: csvRow, errors: ["Missing event name"], warnings: rowWarnings })
     } else if (rowWarnings.length > 0) {
       issues.push({ row: csvRow, errors: [], warnings: rowWarnings })
       validIndices.push(i)
@@ -82,9 +78,20 @@ export function validateOrgRows(
   const issues: RowIssue[] = []
   const validIndices: number[] = []
 
+  if (rows.length > 0) {
+    console.log("[CSV Validation] First parsed org row keys:", Object.keys(rows[0]))
+    console.log("[CSV Validation] First parsed org row:", rows[0])
+  }
+
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i]
     const csvRow = i + 2
+
+    if (isRowEmpty(row)) {
+      issues.push({ row: csvRow, errors: ["Empty row"], warnings: [] })
+      continue
+    }
+
     const result = orgRowSchema.safeParse(row)
     const rowWarnings: string[] = []
 
@@ -93,8 +100,7 @@ export function validateOrgRows(
     }
 
     if (!result.success) {
-      const errors = result.error.issues.map((issue) => issue.message)
-      issues.push({ row: csvRow, errors, warnings: rowWarnings })
+      issues.push({ row: csvRow, errors: ["Missing organization name"], warnings: rowWarnings })
     } else if (rowWarnings.length > 0) {
       issues.push({ row: csvRow, errors: [], warnings: rowWarnings })
       validIndices.push(i)
