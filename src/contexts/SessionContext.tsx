@@ -175,6 +175,8 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
           internal_type: (row.internal_type as string) || "",
           part_of_town: (row.part_of_town as string) || "",
           subcategory: (row.subcategory as string[]) || [],
+          event_category: (row.event_category as string) || "",
+          time_of_day: (row.time_of_day as string) || "",
           created_at: (row.created_at as string) || new Date().toISOString(),
           updated_at: (row.updated_at as string) || new Date().toISOString(),
         }))
@@ -251,6 +253,8 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
             internal_type: e.internal_type,
             part_of_town: e.part_of_town,
             subcategory: e.subcategory,
+            event_category: e.event_category,
+            time_of_day: e.time_of_day,
           }))
 
           const BATCH = 500
@@ -348,6 +352,8 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       internal_type: e.internal_type,
       part_of_town: e.part_of_town,
       subcategory: e.subcategory,
+      event_category: e.event_category,
+      time_of_day: e.time_of_day,
     }))
 
     let totalInserted = 0
@@ -392,6 +398,8 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
         internal_type: (row.internal_type as string) || "",
         part_of_town: (row.part_of_town as string) || "",
         subcategory: (row.subcategory as string[]) || [],
+        event_category: (row.event_category as string) || "",
+        time_of_day: (row.time_of_day as string) || "",
         created_at: (row.created_at as string) || new Date().toISOString(),
         updated_at: (row.updated_at as string) || new Date().toISOString(),
       }))

@@ -26,6 +26,8 @@ export interface Event {
   internal_type: string
   part_of_town: string
   subcategory: string[]
+  event_category: string
+  time_of_day: string
   created_at: string
   updated_at: string
 }
