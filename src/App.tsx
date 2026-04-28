@@ -10,6 +10,7 @@ import { AuditPage } from "@/pages/AuditPage"
 import { LoginPage } from "@/pages/LoginPage"
 import { SignupPage } from "@/pages/SignupPage"
 import { DemoPage } from "@/pages/DemoPage"
+import { DemoEmailPreviewPage } from "@/pages/DemoEmailPreviewPage"
 import { LandingPage } from "@/pages/LandingPage"
 import { ProtectedPages } from "@/components/ProtectedPages"
 
@@ -37,6 +38,7 @@ export function App() {
               <Route path="/" element={<LandingPage />} />
               <Route path="/client-intake" element={<ClientIntakePage />} />
               <Route path="/demo" element={<DemoPage />} />
+              <Route path="/demo-email-preview" element={<DemoEmailPreviewPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
               <Route element={<ProtectedLayout />}>
