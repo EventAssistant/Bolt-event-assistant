@@ -70,14 +70,7 @@ const ICON_LOCK = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" s
 
 // ─── Priority badge (circle #N) ───────────────────────────────────────────────
 function priorityBadgeHTML(rank: number): string {
-  return `
-    <table cellpadding="0" cellspacing="0" border="0" style="display:inline-table;">
-      <tr>
-        <td style="width:40px;height:40px;border-radius:50%;background:${NAVY};text-align:center;vertical-align:middle;line-height:1;">
-          <span style="font-size:15px;font-weight:800;color:${WHITE};display:block;margin-bottom:0;">#${rank}</span>
-        </td>
-      </tr>
-    </table>`
+  return `<span style="display:inline-block;width:36px;height:36px;border-radius:50%;background:${NAVY};text-align:center;line-height:36px;font-size:13px;font-weight:800;color:${WHITE};flex-shrink:0;">#${rank}</span>`
 }
 
 // ─── Tag pill ─────────────────────────────────────────────────────────────────
@@ -108,20 +101,11 @@ function buildEventCardHTML(card: EmailEventCard): string {
     <!-- Card header -->
     <div style="padding:20px 22px 16px;background:${WHITE};">
       <!-- Priority + tags row -->
-      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:12px;">
-        <tr>
-          <td style="vertical-align:middle;width:44px;">
-            ${priorityBadgeHTML(card.priorityRank)}
-          </td>
-          <td style="vertical-align:middle;padding-left:10px;">
-            ${tagPill("Top Pick", "navy-filled")}
-            &nbsp;
-            ${tagPill(card.eventType, "outline-navy")}
-            &nbsp;
-            ${tagPill("Recommended", "gold-filled")}
-          </td>
-        </tr>
-      </table>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+        ${priorityBadgeHTML(card.priorityRank)}
+        ${tagPill("Top Pick", "navy-filled")}
+        ${tagPill(card.eventType, "outline-navy")}
+      </div>
 
       <!-- Event title -->
       <h2 style="margin:0 0 12px;font-size:18px;font-weight:800;color:${NAVY};line-height:1.3;">${card.title}</h2>
@@ -193,20 +177,11 @@ function buildOrgCardHTML(card: EmailOrgCard): string {
     <!-- Card header -->
     <div style="padding:20px 22px 16px;background:${WHITE};">
       <!-- Priority + tags row -->
-      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:12px;">
-        <tr>
-          <td style="vertical-align:middle;width:44px;">
-            ${priorityBadgeHTML(card.priorityRank)}
-          </td>
-          <td style="vertical-align:middle;padding-left:10px;">
-            ${tagPill("Top Pick", "navy-filled")}
-            &nbsp;
-            ${tagPill(card.orgType, "outline-navy")}
-            &nbsp;
-            ${tagPill("Recommended", "gold-filled")}
-          </td>
-        </tr>
-      </table>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+        ${priorityBadgeHTML(card.priorityRank)}
+        ${tagPill("Top Pick", "navy-filled")}
+        ${tagPill(card.orgType, "outline-navy")}
+      </div>
 
       <!-- Org name -->
       <h2 style="margin:0 0 4px;font-size:18px;font-weight:800;color:${NAVY};line-height:1.3;">${card.name}</h2>
