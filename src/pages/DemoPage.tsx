@@ -53,9 +53,9 @@ function CodeScreen({ onUnlock }: { onUnlock: () => void }) {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background px-4">
-      <Card className="w-full max-w-sm">
+      <Card className="w-full max-w-sm border-navy/20">
         <CardHeader className="pb-4">
-          <CardTitle className="text-xl text-center">Enter Access Code</CardTitle>
+          <CardTitle className="text-xl text-center text-navy">Enter Access Code</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -75,7 +75,7 @@ function CodeScreen({ onUnlock }: { onUnlock: () => void }) {
               autoFocus
               className="text-center text-lg tracking-widest h-12"
             />
-            <Button type="submit" className="w-full h-12 text-base" size="lg">
+            <Button type="submit" className="w-full h-12 text-base bg-navy hover:bg-navy/90 text-white" size="lg">
               Unlock Demo
             </Button>
           </form>
@@ -109,16 +109,16 @@ function FormScreen({ onGenerate }: FormScreenProps) {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background px-4 py-8">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md border-navy/20">
         <CardHeader className="pb-2">
           <div className="flex items-center gap-2 mb-1">
-            <Sparkles className="h-5 w-5 text-primary" />
-            <span className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+            <Sparkles className="h-5 w-5 text-gold" />
+            <span className="text-sm font-medium text-navy uppercase tracking-wide">
               Quick Demo Report
             </span>
           </div>
-          <CardTitle className="text-2xl">Your Networking Snapshot</CardTitle>
-          <p className="text-sm text-muted-foreground mt-1">
+          <CardTitle className="text-2xl text-navy">Your Networking Snapshot</CardTitle>
+          <p className="text-sm text-foreground/70 mt-1">
             Answer 4 questions and get a personalized sample report in seconds.
           </p>
         </CardHeader>
@@ -131,31 +131,31 @@ function FormScreen({ onGenerate }: FormScreenProps) {
             )}
 
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">First Name</label>
+              <label className="text-sm font-medium text-navy">First Name</label>
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Sarah"
-                className="h-12 text-base"
+                className="h-12 text-base border-navy/30 focus:ring-gold"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">Industry / Type of Business</label>
+              <label className="text-sm font-medium text-navy">Industry / Type of Business</label>
               <Input
                 value={industry}
                 onChange={(e) => setIndustry(e.target.value)}
                 placeholder="e.g. Commercial Real Estate"
-                className="h-12 text-base"
+                className="h-12 text-base border-navy/30 focus:ring-gold"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">Your #1 Networking Goal</label>
+              <label className="text-sm font-medium text-navy">Your #1 Networking Goal</label>
               <select
                 value={goal}
                 onChange={(e) => setGoal(e.target.value as DemoGoal)}
-                className="flex h-12 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                className="flex h-12 w-full rounded-md border border-navy/30 bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 text-foreground"
               >
                 <option value="" disabled>
                   Select your goal...
@@ -169,17 +169,17 @@ function FormScreen({ onGenerate }: FormScreenProps) {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">Email Address</label>
+              <label className="text-sm font-medium text-navy">Email Address</label>
               <Input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="h-12 text-base"
+                className="h-12 text-base border-navy/30 focus:ring-gold"
               />
             </div>
 
-            <Button type="submit" className="w-full h-14 text-base font-semibold mt-2" size="lg">
+            <Button type="submit" className="w-full h-14 text-base font-semibold mt-2 bg-navy hover:bg-navy/90 text-white" size="lg">
               Generate My Report
             </Button>
           </form>
@@ -206,28 +206,28 @@ function ReportScreen({ formData, report, onSend, sending, sendError }: ReportSc
       <div className="max-w-lg mx-auto space-y-5">
 
         {/* SAMPLE REPORT banner + header */}
-        <Card className="relative overflow-hidden border-2 border-foreground/10">
+        <Card className="relative overflow-hidden border-2 border-navy/20">
           {/* Full-width sample banner */}
-          <div className="bg-foreground text-background text-center py-2 px-4">
+          <div className="bg-navy text-gold text-center py-2 px-4">
             <span className="text-xs font-bold uppercase tracking-widest">Sample Report</span>
           </div>
           <CardContent className="pt-5 pb-5">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
+            <p className="text-xs font-medium uppercase tracking-wide text-gold mb-1">
               Networking Snapshot Report
             </p>
-            <h1 className="text-2xl font-bold text-foreground leading-tight">
+            <h1 className="text-2xl font-bold text-navy leading-tight">
               {formData.name}'s Networking Snapshot
             </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Goal: <span className="font-medium text-foreground">{formData.goal}</span>
+            <p className="text-sm text-foreground/70 mt-1">
+              Goal: <span className="font-medium text-navy">{formData.goal}</span>
               {" · "}
-              Industry: <span className="font-medium text-foreground">{formData.industry}</span>
+              Industry: <span className="font-medium text-navy">{formData.industry}</span>
             </p>
           </CardContent>
         </Card>
 
         {/* Personalized intro */}
-        <Card>
+        <Card className="border-navy/20">
           <CardContent className="pt-5 pb-5">
             <p className="text-sm leading-relaxed text-foreground">{report.intro}</p>
           </CardContent>
@@ -235,32 +235,32 @@ function ReportScreen({ formData, report, onSend, sending, sendError }: ReportSc
 
         {/* ── EVENT RECOMMENDATION ── */}
         <div>
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3 px-1">
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-gold mb-3 px-1">
             Upcoming Event to Attend
           </h2>
 
-          <Card>
+          <Card className="border-navy/20">
             <CardHeader className="pb-3 pt-5">
               <div className="flex items-start justify-between gap-3">
-                <CardTitle className="text-lg leading-snug">{event.title}</CardTitle>
-                <Badge variant="secondary" className="shrink-0 text-xs whitespace-nowrap mt-0.5">
+                <CardTitle className="text-lg leading-snug text-navy">{event.title}</CardTitle>
+                <Badge variant="secondary" className="shrink-0 text-xs whitespace-nowrap mt-0.5 bg-gold text-navy border-gold">
                   {event.eventType}
                 </Badge>
               </div>
 
               {/* Date / time / venue row */}
               <div className="space-y-1.5 mt-2">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Calendar className="h-3.5 w-3.5 shrink-0" />
+                <div className="flex items-center gap-2 text-sm text-foreground/70">
+                  <Calendar className="h-3.5 w-3.5 shrink-0 text-gold" />
                   <span>{event.date}</span>
-                  <span className="text-border">·</span>
-                  <Clock className="h-3.5 w-3.5 shrink-0" />
+                  <span className="text-navy/30">·</span>
+                  <Clock className="h-3.5 w-3.5 shrink-0 text-gold" />
                   <span>{event.time}</span>
                 </div>
-                <div className="flex items-start gap-2 text-sm text-muted-foreground">
-                  <MapPin className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                <div className="flex items-start gap-2 text-sm text-foreground/70">
+                  <MapPin className="h-3.5 w-3.5 shrink-0 mt-0.5 text-gold" />
                   <span>
-                    <span className="font-medium text-foreground">{event.venueName}</span>
+                    <span className="font-medium text-navy">{event.venueName}</span>
                     {" — "}
                     {event.address}
                   </span>
@@ -272,51 +272,51 @@ function ReportScreen({ formData, report, onSend, sending, sendError }: ReportSc
               {/* About the event */}
               <p className="text-sm text-foreground leading-relaxed">{event.description}</p>
 
-              <Separator />
+              <Separator className="bg-navy/10" />
 
               {/* Why recommended */}
               <div className="space-y-1.5">
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gold">
                   Why This Is Recommended for You
                 </p>
                 <p className="text-sm text-foreground leading-relaxed">{event.whyMatch}</p>
               </div>
 
-              <Separator />
+              <Separator className="bg-navy/10" />
 
               {/* Metadata row */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex items-start gap-2">
-                  <Users className="h-3.5 w-3.5 shrink-0 mt-0.5 text-muted-foreground" />
+                  <Users className="h-3.5 w-3.5 shrink-0 mt-0.5 text-gold" />
                   <div>
-                    <p className="text-xs text-muted-foreground">Attendance</p>
-                    <p className="text-sm font-medium text-foreground">{event.attendanceNote}</p>
+                    <p className="text-xs text-foreground/60 uppercase font-semibold">Attendance</p>
+                    <p className="text-sm font-medium text-navy">{event.attendanceNote}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
-                  <Building2 className="h-3.5 w-3.5 shrink-0 mt-0.5 text-muted-foreground" />
+                  <Building2 className="h-3.5 w-3.5 shrink-0 mt-0.5 text-gold" />
                   <div>
-                    <p className="text-xs text-muted-foreground">Hosted By</p>
-                    <p className="text-sm font-medium text-foreground">{event.hostedBy}</p>
+                    <p className="text-xs text-foreground/60 uppercase font-semibold">Hosted By</p>
+                    <p className="text-sm font-medium text-navy">{event.hostedBy}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2 col-span-2">
-                  <DollarSign className="h-3.5 w-3.5 shrink-0 mt-0.5 text-muted-foreground" />
+                  <DollarSign className="h-3.5 w-3.5 shrink-0 mt-0.5 text-gold" />
                   <div>
-                    <p className="text-xs text-muted-foreground">Cost / Registration</p>
-                    <p className="text-sm font-medium text-foreground">{event.costNote}</p>
+                    <p className="text-xs text-foreground/60 uppercase font-semibold">Cost / Registration</p>
+                    <p className="text-sm font-medium text-navy">{event.costNote}</p>
                   </div>
                 </div>
               </div>
 
-              <Separator />
+              <Separator className="bg-navy/10" />
 
               {/* Register CTA */}
               <a
                 href={event.registrationLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full h-10 rounded-md border border-input bg-background px-4 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
+                className="flex items-center justify-center gap-2 w-full h-10 rounded-md border border-gold bg-gold text-navy px-4 text-sm font-medium hover:bg-gold/90 transition-colors"
               >
                 <ExternalLink className="h-4 w-4" />
                 View Registration / Event Details
@@ -327,25 +327,25 @@ function ReportScreen({ formData, report, onSend, sending, sendError }: ReportSc
 
         {/* ── ORGANIZATION RECOMMENDATION ── */}
         <div>
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3 px-1">
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-gold mb-3 px-1">
             Organization to Join
           </h2>
 
-          <Card>
+          <Card className="border-navy/20">
             <CardHeader className="pb-3 pt-5">
               <div className="flex items-start justify-between gap-3">
-                <CardTitle className="text-lg leading-snug">{org.name}</CardTitle>
-                <Badge variant="outline" className="shrink-0 text-xs whitespace-nowrap mt-0.5">
+                <CardTitle className="text-lg leading-snug text-navy">{org.name}</CardTitle>
+                <Badge variant="outline" className="shrink-0 text-xs whitespace-nowrap mt-0.5 bg-gold text-navy border-gold">
                   {org.primaryBenefit}
                 </Badge>
               </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                <Globe className="h-3.5 w-3.5 shrink-0" />
+              <div className="flex items-center gap-2 text-sm mt-1">
+                <Globe className="h-3.5 w-3.5 shrink-0 text-gold" />
                 <a
                   href={org.website}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:text-foreground underline underline-offset-2 transition-colors"
+                  className="text-gold hover:text-gold/80 underline underline-offset-2 transition-colors font-medium"
                 >
                   {org.website.replace("https://", "")}
                 </a>
@@ -356,39 +356,39 @@ function ReportScreen({ formData, report, onSend, sending, sendError }: ReportSc
               {/* Description */}
               <p className="text-sm text-foreground leading-relaxed">{org.description}</p>
 
-              <Separator />
+              <Separator className="bg-navy/10" />
 
               {/* Why recommended */}
               <div className="space-y-1.5">
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gold">
                   Why This Is Recommended for You
                 </p>
                 <p className="text-sm text-foreground leading-relaxed">{org.whyJoin}</p>
               </div>
 
-              <Separator />
+              <Separator className="bg-navy/10" />
 
               {/* Metadata row */}
               <div className="grid grid-cols-1 gap-3">
                 <div className="flex items-start gap-2">
-                  <Repeat className="h-3.5 w-3.5 shrink-0 mt-0.5 text-muted-foreground" />
+                  <Repeat className="h-3.5 w-3.5 shrink-0 mt-0.5 text-gold" />
                   <div>
-                    <p className="text-xs text-muted-foreground">Meeting Frequency & Format</p>
-                    <p className="text-sm font-medium text-foreground">{org.meetingFrequency}</p>
+                    <p className="text-xs text-foreground/60 uppercase font-semibold">Meeting Frequency & Format</p>
+                    <p className="text-sm font-medium text-navy">{org.meetingFrequency}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
-                  <DollarSign className="h-3.5 w-3.5 shrink-0 mt-0.5 text-muted-foreground" />
+                  <DollarSign className="h-3.5 w-3.5 shrink-0 mt-0.5 text-gold" />
                   <div>
-                    <p className="text-xs text-muted-foreground">Membership Cost / How to Join</p>
-                    <p className="text-sm font-medium text-foreground">{org.membershipCost}</p>
+                    <p className="text-xs text-foreground/60 uppercase font-semibold">Membership Cost / How to Join</p>
+                    <p className="text-sm font-medium text-navy">{org.membershipCost}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
-                  <Star className="h-3.5 w-3.5 shrink-0 mt-0.5 text-muted-foreground" />
+                  <Star className="h-3.5 w-3.5 shrink-0 mt-0.5 text-gold" />
                   <div>
-                    <p className="text-xs text-muted-foreground">Primary Benefit</p>
-                    <p className="text-sm font-medium text-foreground">{org.primaryBenefit}</p>
+                    <p className="text-xs text-foreground/60 uppercase font-semibold">Primary Benefit</p>
+                    <p className="text-sm font-medium text-navy">{org.primaryBenefit}</p>
                   </div>
                 </div>
               </div>
@@ -397,9 +397,9 @@ function ReportScreen({ formData, report, onSend, sending, sendError }: ReportSc
         </div>
 
         {/* ── SAMPLE NOTE ── */}
-        <Card className="bg-muted/40 border-dashed">
+        <Card className="bg-gold/5 border-dashed border-gold/30">
           <CardContent className="py-5">
-            <p className="text-sm text-muted-foreground text-center leading-relaxed">
+            <p className="text-sm text-foreground/80 text-center leading-relaxed">
               This is a 2-item sample. Your full report includes a complete list of recommended
               events and organizations personalized to your profile. The more information you
               provide, the more accurate your results.
@@ -408,30 +408,30 @@ function ReportScreen({ formData, report, onSend, sending, sendError }: ReportSc
         </Card>
 
         {/* ── LOCKED SECTION ── */}
-        <div className="relative rounded-xl overflow-hidden border bg-card">
+        <div className="relative rounded-xl overflow-hidden border border-navy/20 bg-card">
           {/* Blurred content behind the lock overlay */}
           <div className="select-none pointer-events-none blur-sm opacity-40 px-5 py-5 space-y-3">
             {[1, 2, 3].map((n) => (
               <div key={n} className="space-y-1.5">
-                <div className="h-4 bg-muted rounded w-3/4" />
-                <div className="h-3 bg-muted rounded w-1/2" />
-                <div className="h-3 bg-muted rounded w-5/6" />
+                <div className="h-4 bg-navy/20 rounded w-3/4" />
+                <div className="h-3 bg-navy/20 rounded w-1/2" />
+                <div className="h-3 bg-navy/20 rounded w-5/6" />
               </div>
             ))}
           </div>
 
           {/* Lock overlay */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-background/70 backdrop-blur-[2px] px-6 py-8">
-            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-foreground/10">
-              <Lock className="h-6 w-6 text-foreground" />
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-background/80 backdrop-blur-[2px] px-6 py-8">
+            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-gold/20">
+              <Lock className="h-6 w-6 text-navy" />
             </div>
-            <p className="text-sm font-semibold text-foreground text-center">
+            <p className="text-sm font-semibold text-navy text-center">
               Your full report includes more events and organizations
             </p>
-            <p className="text-xs text-muted-foreground text-center">
+            <p className="text-xs text-foreground/70 text-center">
               Personalized to your industry, goal, and schedule
             </p>
-            <Button className="mt-1 h-10 px-6 text-sm font-semibold" size="default">
+            <Button className="mt-1 h-10 px-6 text-sm font-semibold bg-navy hover:bg-navy/90 text-white" size="default">
               Get Full Report
             </Button>
           </div>
@@ -445,7 +445,7 @@ function ReportScreen({ formData, report, onSend, sending, sendError }: ReportSc
         )}
 
         <Button
-          className="w-full h-14 text-base font-semibold"
+          className="w-full h-14 text-base font-semibold bg-navy hover:bg-navy/90 text-white"
           size="lg"
           onClick={onSend}
           disabled={sending}
@@ -454,18 +454,18 @@ function ReportScreen({ formData, report, onSend, sending, sendError }: ReportSc
         </Button>
 
         {/* Footer CTA */}
-        <Card className="border-foreground/10 bg-muted/30">
+        <Card className="border-navy/20 bg-navy">
           <CardContent className="py-5 text-center space-y-1">
-            <p className="text-sm font-semibold text-foreground">
+            <p className="text-sm font-semibold text-gold">
               Want your full personalized report?
             </p>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-white">
               Michael Espinoza · 210-370-7550
             </p>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-white">
               michael@texasbusinesscalendars.com
             </p>
-            <p className="text-sm font-medium text-foreground mt-2">
+            <p className="text-sm font-medium text-gold mt-2">
               Contact Michael to start your Event Assistant subscription.
             </p>
           </CardContent>
@@ -481,18 +481,17 @@ function ReportScreen({ formData, report, onSend, sending, sendError }: ReportSc
 function SuccessScreen({ name, onStartOver }: { name: string; onStartOver: () => void }) {
   return (
     <div className="flex items-center justify-center min-h-screen bg-background px-4">
-      <Card className="w-full max-w-sm text-center">
+      <Card className="w-full max-w-sm text-center border-navy/20">
         <CardContent className="pt-10 pb-8 space-y-4">
-          <CheckCircle className="h-14 w-14 text-chart-4 mx-auto" />
-          <h2 className="text-xl font-bold text-foreground">
+          <CheckCircle className="h-14 w-14 text-gold mx-auto" />
+          <h2 className="text-xl font-bold text-navy">
             Report sent! Check your inbox, {name}.
           </h2>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-foreground/70">
             Your networking snapshot is on its way.
           </p>
           <Button
-            variant="outline"
-            className="w-full h-12 text-base mt-2"
+            className="w-full h-12 text-base mt-2 bg-navy hover:bg-navy/90 text-white"
             onClick={onStartOver}
           >
             Start Over
