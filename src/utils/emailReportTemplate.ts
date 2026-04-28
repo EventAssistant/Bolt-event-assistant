@@ -357,6 +357,15 @@ function footerHTML(): string {
   </tr>`
 }
 
+// ─── Strip SVGs and collapse whitespace to stay under EmailJS 50KB limit ─────
+export function minifyForEmail(html: string): string {
+  return html
+    .replace(/<svg[\s\S]*?<\/svg>/gi, "")
+    .replace(/\s{2,}/g, " ")
+    .replace(/>\s+</g, "><")
+    .trim()
+}
+
 // ─── Main entry point ─────────────────────────────────────────────────────────
 export function buildReportEmailHTML(options: EmailOptions): string {
   if (options.demo) {

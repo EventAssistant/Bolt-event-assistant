@@ -30,6 +30,7 @@ import {
 } from "@/utils/demoReport"
 import { supabase } from "@/lib/supabase"
 import { useEmailSettings } from "@/contexts/EmailSettingsContext"
+import { minifyForEmail } from "@/utils/emailReportTemplate"
 
 const GOALS: DemoGoal[] = ["Referrals", "Partnerships", "Clients", "Visibility", "Hiring"]
 
@@ -546,7 +547,7 @@ export function DemoPage() {
       await emailjs.send(settings.serviceId, settings.templateId, {
         to_email: formData.email,
         client_name: formData.name,
-        report_content: formatReportForEmail(report, formData),
+        report_content: minifyForEmail(formatReportForEmail(report, formData)),
         sender_name: settings.senderName || "Your Advisor",
         subject: `Your Event Recommendations — Sample Report`,
       })

@@ -3,6 +3,7 @@ import emailjs from "emailjs-com"
 import { Mail, Loader as Loader2, CircleCheck as CheckCircle2, CircleAlert as AlertCircle, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useEmailSettings } from "@/contexts/EmailSettingsContext"
+import { minifyForEmail } from "@/utils/emailReportTemplate"
 import type { ClientProfile } from "@/types"
 
 interface EmailReportButtonProps {
@@ -34,7 +35,7 @@ export function EmailReportButton({ profile, reportHTML, onOpenSettings, onSent 
       await emailjs.send(settings.serviceId, settings.templateId, {
         to_email: clientEmail,
         client_name: clientName || "Client",
-        report_content: reportHTML,
+        report_content: minifyForEmail(reportHTML),
         sender_name: settings.senderName || "Your Advisor",
         subject: `Your Networking Recommendations Report — ${clientName || "Client"}`,
       })
