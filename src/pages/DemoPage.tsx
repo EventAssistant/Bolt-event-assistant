@@ -1,13 +1,33 @@
 import { useState } from "react"
 import emailjs from "emailjs-com"
-import { Lock, CircleCheck as CheckCircle, Sparkles } from "lucide-react"
+import {
+  Lock,
+  CircleCheck as CheckCircle,
+  Sparkles,
+  MapPin,
+  Clock,
+  Calendar,
+  Users,
+  ExternalLink,
+  Globe,
+  Repeat,
+  DollarSign,
+  Star,
+  Building2,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Separator } from "@/components/ui/separator"
-import { buildDemoReport, type DemoFormData, type DemoGoal, type DemoReportData } from "@/utils/demoReport"
+import {
+  buildDemoReport,
+  formatReportForEmail,
+  type DemoFormData,
+  type DemoGoal,
+  type DemoReportData,
+} from "@/utils/demoReport"
 import { supabase } from "@/lib/supabase"
 
 const GOALS: DemoGoal[] = ["Referrals", "Partnerships", "Clients", "Visibility", "Hiring"]
@@ -15,19 +35,6 @@ const GOALS: DemoGoal[] = ["Referrals", "Partnerships", "Clients", "Visibility",
 const DEMO_TEMPLATE_ID = "demo_snapshot_report"
 
 type Screen = "code" | "form" | "report" | "success"
-
-function formatReportForEmail(report: DemoReportData): string {
-  const eventLines = report.events
-    .map(
-      (e, i) =>
-        `EVENT ${i + 1}: ${e.title}\nDate: ${e.date}\nLocation: ${e.location}\nWhy: ${e.whyMatch}`
-    )
-    .join("\n\n")
-
-  const orgLine = `ORGANIZATION: ${report.org.name}\nCategory: ${report.org.category}\nWhy Join: ${report.org.whyJoin}`
-
-  return `INTRO:\n${report.intro}\n\n${eventLines}\n\n${orgLine}\n\nNote: The more information you provide, the more personalized and accurate your recommendations will be.`
-}
 
 // --- Screen 1: Code Entry ---
 function CodeScreen({ onUnlock }: { onUnlock: () => void }) {
@@ -192,18 +199,19 @@ interface ReportScreenProps {
 }
 
 function ReportScreen({ formData, report, onSend, sending, sendError }: ReportScreenProps) {
+  const { event, org } = report
+
   return (
     <div className="min-h-screen bg-background px-4 py-8">
       <div className="max-w-lg mx-auto space-y-5">
 
-        {/* Header card with DEMO badge */}
-        <Card className="relative overflow-hidden">
-          <div className="absolute top-3 right-3">
-            <Badge className="bg-chart-4 text-background font-bold tracking-wider text-xs px-2 py-0.5">
-              DEMO
-            </Badge>
+        {/* SAMPLE REPORT banner + header */}
+        <Card className="relative overflow-hidden border-2 border-foreground/10">
+          {/* Full-width sample banner */}
+          <div className="bg-foreground text-background text-center py-2 px-4">
+            <span className="text-xs font-bold uppercase tracking-widest">Sample Report</span>
           </div>
-          <CardContent className="pt-6 pb-5">
+          <CardContent className="pt-5 pb-5">
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
               Networking Snapshot Report
             </p>
@@ -211,7 +219,9 @@ function ReportScreen({ formData, report, onSend, sending, sendError }: ReportSc
               {formData.name}'s Networking Snapshot
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Sample Report — Full version available from Event Assistant
+              Goal: <span className="font-medium text-foreground">{formData.goal}</span>
+              {" · "}
+              Industry: <span className="font-medium text-foreground">{formData.industry}</span>
             </p>
           </CardContent>
         </Card>
@@ -223,71 +233,209 @@ function ReportScreen({ formData, report, onSend, sending, sendError }: ReportSc
           </CardContent>
         </Card>
 
-        {/* Event recommendations */}
+        {/* ── EVENT RECOMMENDATION ── */}
         <div>
           <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3 px-1">
-            Upcoming Events to Attend
+            Upcoming Event to Attend
           </h2>
-          <div className="space-y-3">
-            {report.events.map((event, i) => (
-              <Card key={i}>
-                <CardHeader className="pb-2 pt-4">
-                  <div className="flex items-start justify-between gap-2">
-                    <CardTitle className="text-base leading-snug">{event.title}</CardTitle>
-                    <Badge variant="secondary" className="shrink-0 text-xs">
-                      #{i + 1}
-                    </Badge>
+
+          <Card>
+            <CardHeader className="pb-3 pt-5">
+              <div className="flex items-start justify-between gap-3">
+                <CardTitle className="text-lg leading-snug">{event.title}</CardTitle>
+                <Badge variant="secondary" className="shrink-0 text-xs whitespace-nowrap mt-0.5">
+                  {event.eventType}
+                </Badge>
+              </div>
+
+              {/* Date / time / venue row */}
+              <div className="space-y-1.5 mt-2">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Calendar className="h-3.5 w-3.5 shrink-0" />
+                  <span>{event.date}</span>
+                  <span className="text-border">·</span>
+                  <Clock className="h-3.5 w-3.5 shrink-0" />
+                  <span>{event.time}</span>
+                </div>
+                <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                  <MapPin className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                  <span>
+                    <span className="font-medium text-foreground">{event.venueName}</span>
+                    {" — "}
+                    {event.address}
+                  </span>
+                </div>
+              </div>
+            </CardHeader>
+
+            <CardContent className="pb-5 space-y-4">
+              {/* About the event */}
+              <p className="text-sm text-foreground leading-relaxed">{event.description}</p>
+
+              <Separator />
+
+              {/* Why recommended */}
+              <div className="space-y-1.5">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Why This Is Recommended for You
+                </p>
+                <p className="text-sm text-foreground leading-relaxed">{event.whyMatch}</p>
+              </div>
+
+              <Separator />
+
+              {/* Metadata row */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex items-start gap-2">
+                  <Users className="h-3.5 w-3.5 shrink-0 mt-0.5 text-muted-foreground" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Attendance</p>
+                    <p className="text-sm font-medium text-foreground">{event.attendanceNote}</p>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    {event.date} · {event.location}
-                  </p>
-                </CardHeader>
-                <CardContent className="pb-4">
-                  <p className="text-sm text-foreground leading-relaxed">{event.whyMatch}</p>
-                  <Separator className="my-3" />
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Lock className="h-3 w-3 shrink-0" />
-                    <span>Full detail in your complete report</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Building2 className="h-3.5 w-3.5 shrink-0 mt-0.5 text-muted-foreground" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Hosted By</p>
+                    <p className="text-sm font-medium text-foreground">{event.hostedBy}</p>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                </div>
+                <div className="flex items-start gap-2 col-span-2">
+                  <DollarSign className="h-3.5 w-3.5 shrink-0 mt-0.5 text-muted-foreground" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Cost / Registration</p>
+                    <p className="text-sm font-medium text-foreground">{event.costNote}</p>
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Register CTA */}
+              <a
+                href={event.registrationLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 w-full h-10 rounded-md border border-input bg-background px-4 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
+              >
+                <ExternalLink className="h-4 w-4" />
+                View Registration / Event Details
+              </a>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Organization recommendation */}
+        {/* ── ORGANIZATION RECOMMENDATION ── */}
         <div>
           <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3 px-1">
             Organization to Join
           </h2>
+
           <Card>
-            <CardHeader className="pb-2 pt-4">
-              <div className="flex items-start justify-between gap-2">
-                <CardTitle className="text-base leading-snug">{report.org.name}</CardTitle>
-                <Badge variant="outline" className="shrink-0 text-xs">
-                  {report.org.category}
+            <CardHeader className="pb-3 pt-5">
+              <div className="flex items-start justify-between gap-3">
+                <CardTitle className="text-lg leading-snug">{org.name}</CardTitle>
+                <Badge variant="outline" className="shrink-0 text-xs whitespace-nowrap mt-0.5">
+                  {org.primaryBenefit}
                 </Badge>
               </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                <Globe className="h-3.5 w-3.5 shrink-0" />
+                <a
+                  href={org.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-foreground underline underline-offset-2 transition-colors"
+                >
+                  {org.website.replace("https://", "")}
+                </a>
+              </div>
             </CardHeader>
-            <CardContent className="pb-4">
-              <p className="text-sm text-foreground leading-relaxed">{report.org.whyJoin}</p>
-              <Separator className="my-3" />
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <Lock className="h-3 w-3 shrink-0" />
-                <span>Full detail in your complete report</span>
+
+            <CardContent className="pb-5 space-y-4">
+              {/* Description */}
+              <p className="text-sm text-foreground leading-relaxed">{org.description}</p>
+
+              <Separator />
+
+              {/* Why recommended */}
+              <div className="space-y-1.5">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Why This Is Recommended for You
+                </p>
+                <p className="text-sm text-foreground leading-relaxed">{org.whyJoin}</p>
+              </div>
+
+              <Separator />
+
+              {/* Metadata row */}
+              <div className="grid grid-cols-1 gap-3">
+                <div className="flex items-start gap-2">
+                  <Repeat className="h-3.5 w-3.5 shrink-0 mt-0.5 text-muted-foreground" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Meeting Frequency & Format</p>
+                    <p className="text-sm font-medium text-foreground">{org.meetingFrequency}</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <DollarSign className="h-3.5 w-3.5 shrink-0 mt-0.5 text-muted-foreground" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Membership Cost / How to Join</p>
+                    <p className="text-sm font-medium text-foreground">{org.membershipCost}</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Star className="h-3.5 w-3.5 shrink-0 mt-0.5 text-muted-foreground" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Primary Benefit</p>
+                    <p className="text-sm font-medium text-foreground">{org.primaryBenefit}</p>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Personalization note */}
-        <Card className="bg-muted/50">
-          <CardContent className="py-4">
-            <p className="text-sm text-muted-foreground italic text-center">
-              The more information you provide, the more personalized and accurate your recommendations will be.
+        {/* ── SAMPLE NOTE ── */}
+        <Card className="bg-muted/40 border-dashed">
+          <CardContent className="py-5">
+            <p className="text-sm text-muted-foreground text-center leading-relaxed">
+              This is a 2-item sample. Your full report includes a complete list of recommended
+              events and organizations personalized to your profile. The more information you
+              provide, the more accurate your results.
             </p>
           </CardContent>
         </Card>
+
+        {/* ── LOCKED SECTION ── */}
+        <div className="relative rounded-xl overflow-hidden border bg-card">
+          {/* Blurred content behind the lock overlay */}
+          <div className="select-none pointer-events-none blur-sm opacity-40 px-5 py-5 space-y-3">
+            {[1, 2, 3].map((n) => (
+              <div key={n} className="space-y-1.5">
+                <div className="h-4 bg-muted rounded w-3/4" />
+                <div className="h-3 bg-muted rounded w-1/2" />
+                <div className="h-3 bg-muted rounded w-5/6" />
+              </div>
+            ))}
+          </div>
+
+          {/* Lock overlay */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-background/70 backdrop-blur-[2px] px-6 py-8">
+            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-foreground/10">
+              <Lock className="h-6 w-6 text-foreground" />
+            </div>
+            <p className="text-sm font-semibold text-foreground text-center">
+              Your full report includes more events and organizations
+            </p>
+            <p className="text-xs text-muted-foreground text-center">
+              Personalized to your industry, goal, and schedule
+            </p>
+            <Button className="mt-1 h-10 px-6 text-sm font-semibold" size="default">
+              Get Full Report
+            </Button>
+          </div>
+        </div>
 
         {/* Send email section */}
         {sendError && (
@@ -306,7 +454,7 @@ function ReportScreen({ formData, report, onSend, sending, sendError }: ReportSc
         </Button>
 
         {/* Footer CTA */}
-        <Card className="border-primary/20 bg-primary/5">
+        <Card className="border-foreground/10 bg-muted/30">
           <CardContent className="py-5 text-center space-y-1">
             <p className="text-sm font-semibold text-foreground">
               Want your full personalized report?
@@ -402,7 +550,7 @@ export function DemoPage() {
         to_email: formData.email,
         industry: formData.industry,
         goal: formData.goal,
-        report_sections: formatReportForEmail(report),
+        report_sections: formatReportForEmail(report, formData),
         cta_contact:
           "Michael Espinoza | 210-370-7550 | michael@texasbusinesscalendars.com\nContact Michael to start your Event Assistant subscription.",
       })
