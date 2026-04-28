@@ -29,11 +29,9 @@ import {
   type DemoReportData,
 } from "@/utils/demoReport"
 import { supabase } from "@/lib/supabase"
+import { useEmailSettings } from "@/contexts/EmailSettingsContext"
 
 const GOALS: DemoGoal[] = ["Referrals", "Partnerships", "Clients", "Visibility", "Hiring"]
-
-// Uses the same EmailJS template as the full report (report_content variable)
-const DEMO_TEMPLATE_ID = import.meta.env.VITE_DEMO_EMAILJS_TEMPLATE_ID || "demo_snapshot_report"
 
 type Screen = "code" | "form" | "report" | "success"
 
@@ -507,6 +505,7 @@ function SuccessScreen({ name, onStartOver }: { name: string; onStartOver: () =>
 
 // --- Main DemoPage ---
 export function DemoPage() {
+  const { settings, isConfigured } = useEmailSettings()
   const [screen, setScreen] = useState<Screen>("code")
   const [formData, setFormData] = useState<DemoFormData | null>(null)
   const [report, setReport] = useState<DemoReportData | null>(null)
@@ -534,10 +533,7 @@ export function DemoPage() {
   const handleSend = async () => {
     if (!formData || !report) return
 
-    const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID
-    const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY
-
-    if (!serviceId || !publicKey) {
+    if (!isConfigured) {
       setSendError("Email is not configured yet. Here's your report on screen!")
       return
     }
@@ -546,13 +542,12 @@ export function DemoPage() {
     setSendError("")
 
     try {
-      emailjs.init(publicKey)
-      await emailjs.send(serviceId, DEMO_TEMPLATE_ID, {
-        to_name: formData.name,
+      emailjs.init(settings.publicKey)
+      await emailjs.send(settings.serviceId, settings.templateId, {
         to_email: formData.email,
         client_name: formData.name,
         report_content: formatReportForEmail(report, formData),
-        sender_name: "Michael Espinoza",
+        sender_name: settings.senderName || "Your Advisor",
         subject: `Your Event Recommendations — Sample Report`,
       })
       setScreen("success")
