@@ -32,7 +32,8 @@ import { supabase } from "@/lib/supabase"
 
 const GOALS: DemoGoal[] = ["Referrals", "Partnerships", "Clients", "Visibility", "Hiring"]
 
-const DEMO_TEMPLATE_ID = "demo_snapshot_report"
+// Uses the same EmailJS template as the full report (report_content variable)
+const DEMO_TEMPLATE_ID = import.meta.env.VITE_DEMO_EMAILJS_TEMPLATE_ID || "demo_snapshot_report"
 
 type Screen = "code" | "form" | "report" | "success"
 
@@ -549,11 +550,10 @@ export function DemoPage() {
       await emailjs.send(serviceId, DEMO_TEMPLATE_ID, {
         to_name: formData.name,
         to_email: formData.email,
-        industry: formData.industry,
-        goal: formData.goal,
-        report_sections: formatReportForEmail(report, formData),
-        cta_contact:
-          "Michael Espinoza | 210-370-7550 | michael@texasbusinesscalendars.com\nContact Michael to start your Event Assistant subscription.",
+        client_name: formData.name,
+        report_content: formatReportForEmail(report, formData),
+        sender_name: "Michael Espinoza",
+        subject: `Your Event Recommendations — Sample Report`,
       })
       setScreen("success")
     } catch {

@@ -30,6 +30,8 @@ import type { AIRecommendation, OrgRecommendation } from "@/contexts/SessionCont
 import { useSession } from "@/contexts/SessionContext"
 import { AddToCalendarButton } from "@/components/AddToCalendarButton"
 import { generateEmailCalendarBlock } from "@/utils/calendarUtils"
+import { buildReportEmailHTML } from "@/utils/emailReportTemplate"
+import type { EmailEventCard, EmailOrgCard } from "@/utils/emailReportTemplate"
 import { EmailReportButton } from "@/components/EmailReportButton"
 import { EmailSettingsModal } from "@/components/EmailSettingsModal"
 import { supabase } from "@/lib/supabase"
@@ -332,125 +334,53 @@ function generateReportHTML(
   recommendations: AIRecommendation[],
   orgRecommendations: OrgRecommendation[]
 ): string {
-  const today = new Date().toLocaleDateString("en-US", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
+  const events: EmailEventCard[] = recommendations.map((rec) => {
+    const ev = rec.matched_event
+    const dateStr = ev?.start_date
+      ? new Date(ev.start_date + "T12:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })
+      : "—"
+    const venue = [ev?.event_city].filter(Boolean).join(", ") || "—"
+    return {
+      priorityRank: rec.priority_rank,
+      title: rec.event_name,
+      eventType: ev?.event_category ?? "Networking",
+      date: dateStr,
+      time: ev?.start_time ?? "—",
+      venue,
+      cost: ev?.paid ?? "See event page",
+      description: "",
+      whyThisEvent: rec.why_this_event,
+      whoYoullMeet: rec.who_youll_meet,
+      whatToDo: rec.what_to_do,
+      registrationLink: ev?.website,
+      calendarBlock: ev ? generateEmailCalendarBlock(ev) : undefined,
+    }
   })
 
-  const eventHTML = recommendations
-    .map((rec) => {
-      const ev = rec.matched_event
-      const eventUrl = ev?.website
-      const eventNameDisplay = eventUrl
-        ? `<a href="${eventUrl}" target="_blank" rel="noopener noreferrer" style="color: #000; text-decoration: underline;">${rec.event_name}</a>`
-        : rec.event_name
-      const dateStr = ev?.start_date
-        ? new Date(ev.start_date + "T12:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })
-        : null
-      const metaParts = [
-        dateStr,
-        ev?.start_time,
-        ev?.event_city,
-        ev?.paid ? `Cost: ${ev.paid}` : null,
-      ].filter(Boolean)
-      const calendarBlock = ev ? generateEmailCalendarBlock(ev) : ""
-      const eventButtons = [
-        eventUrl ? `<a href="${eventUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-block; padding: 0.3rem 0.75rem; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.8rem; color: #374151; text-decoration: none;">🌐 View Event</a>` : "",
-      ].filter(Boolean).join(" ")
-      return `
-    <div style="margin-bottom: 2rem; padding: 1rem; border: 1px solid #e5e7eb; border-radius: 0.5rem;">
-      <div style="margin-bottom: 0.5rem;">
-        <strong style="font-size: 1.125rem;">#${rec.priority_rank} — ${eventNameDisplay}</strong>
-      </div>
-      ${metaParts.length > 0 ? `<p style="color: #888; font-size: 0.875rem; margin: 0.25rem 0 0.75rem;">${metaParts.join(" · ")}</p>` : ""}
-      ${eventButtons ? `<div style="margin: 0.5rem 0 0.75rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">${eventButtons}</div>` : ""}
-      ${calendarBlock}
-      <p style="color: #666; margin: 0.75rem 0 0.5rem;"><strong>Why:</strong> ${rec.why_this_event}</p>
-      <p style="color: #666; margin: 0.5rem 0;"><strong>Who:</strong> ${rec.who_youll_meet}</p>
-      <div style="margin: 0.5rem 0;">
-        <strong>What to do:</strong>
-        <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
-          ${rec.what_to_do.map((action) => `<li>${action}</li>`).join("")}
-        </ul>
-      </div>
-    </div>
-  `
-    })
-    .join("")
+  const orgs: EmailOrgCard[] = orgRecommendations.map((rec) => ({
+    priorityRank: rec.priority_rank,
+    name: rec.org_name,
+    website: rec.home_page,
+    orgType: rec.category,
+    description: "",
+    whyThisOrg: rec.why_join,
+    whoYoullMeet: rec.who_youll_meet,
+    whatToDo: rec.how_to_engage,
+    meetingFrequency: rec.activity_level,
+    membershipCost: "See organization website",
+    primaryBenefit: rec.category,
+  }))
 
-  const orgHTML = orgRecommendations
-    .map((rec) => {
-      const orgUrl = rec.home_page
-      const orgNameDisplay = orgUrl
-        ? `<a href="${orgUrl}" target="_blank" rel="noopener noreferrer" style="color: #000; text-decoration: underline;">${rec.org_name}</a>`
-        : rec.org_name
-      const calendarUrl = rec.calendar_link
-      const orgLinks = [
-        orgUrl ? `<a href="${orgUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-block; padding: 0.3rem 0.75rem; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.8rem; color: #374151; text-decoration: none;">🌐 Website</a>` : "",
-        calendarUrl ? `<a href="${calendarUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-block; padding: 0.3rem 0.75rem; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.8rem; color: #374151; text-decoration: none;">📅 Events Calendar</a>` : "",
-      ].filter(Boolean).join(" ")
-      return `
-    <div style="margin-bottom: 2rem; padding: 1rem; border: 1px solid #e5e7eb; border-radius: 0.5rem;">
-      <div style="margin-bottom: 0.5rem;">
-        <strong style="font-size: 1.125rem;">#${rec.priority_rank} — ${orgNameDisplay}</strong>
-      </div>
-      ${orgLinks ? `<div style="margin: 0.5rem 0 0.75rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">${orgLinks}</div>` : ""}
-      <p style="color: #666; margin: 0.5rem 0;"><strong>Category:</strong> ${rec.category}</p>
-      <p style="color: #666; margin: 0.5rem 0;"><strong>Activity:</strong> ${rec.activity_level}</p>
-      <p style="color: #666; margin: 0.5rem 0;"><strong>Why:</strong> ${rec.why_join}</p>
-      <p style="color: #666; margin: 0.5rem 0;"><strong>Who:</strong> ${rec.who_youll_meet}</p>
-      <div style="margin: 0.5rem 0;">
-        <strong>How to engage:</strong>
-        <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
-          ${rec.how_to_engage.map((action) => `<li>${action}</li>`).join("")}
-        </ul>
-      </div>
-    </div>
-  `
-    })
-    .join("")
-
-  return `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8">
-      <title>Networking Recommendations Report</title>
-      <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 900px; margin: 0 auto; padding: 2rem; }
-        h1 { color: #000; margin-bottom: 0.5rem; }
-        h2 { color: #333; margin-top: 2rem; margin-bottom: 1rem; border-bottom: 2px solid #000; padding-bottom: 0.5rem; }
-        .header { margin-bottom: 2rem; }
-        .client-info { background: #f5f5f5; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; }
-        .client-info p { margin: 0.25rem 0; }
-        .date { color: #666; font-size: 0.875rem; }
-        @media print { body { padding: 0; } }
-      </style>
-    </head>
-    <body>
-      <div class="header">
-        <h1>Networking Recommendations Report</h1>
-        <p class="date">${today}</p>
-      </div>
-
-      <div class="client-info">
-        <h3>Client Profile</h3>
-        <p><strong>Name:</strong> ${profile.name}</p>
-        <p><strong>Title:</strong> ${profile.title}</p>
-        <p><strong>Industry:</strong> ${profile.industry}</p>
-        <p><strong>Target Industries:</strong> ${profile.targetIndustries.join(", ") || "—"}</p>
-        <p><strong>Target Roles:</strong> ${profile.targetRoles.join(", ") || "—"}</p>
-      </div>
-
-      ${recommendations.length > 0 ? `<h2>Recommended Events (${recommendations.length})</h2>${eventHTML}` : ""}
-      ${orgRecommendations.length > 0 ? `<h2>Recommended Organizations (${orgRecommendations.length})</h2>${orgHTML}` : ""}
-
-      <p style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #ddd; color: #999; font-size: 0.875rem;">Generated by AI Matching Engine</p>
-    </body>
-    </html>
-  `
+  return buildReportEmailHTML({
+    demo: false,
+    recipientName: profile.name,
+    recipientTitle: profile.title,
+    industry: profile.industry,
+    targetIndustries: profile.targetIndustries,
+    targetRoles: profile.targetRoles,
+    events,
+    orgs,
+  })
 }
 
 function ClientContextCard({ profile }: { profile: ClientProfile }) {
