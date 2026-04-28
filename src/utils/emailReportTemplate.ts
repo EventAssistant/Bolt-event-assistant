@@ -92,7 +92,7 @@ function tagPill(label: string, style: "navy-filled" | "gold-filled" | "outline-
   const styles: Record<typeof style, string> = {
     "navy-filled": `background:${NAVY};color:${WHITE};border:1px solid ${NAVY};`,
     "gold-filled": `background:${GOLD};color:${NAVY};border:1px solid ${GOLD};`,
-    "outline-navy": `background:transparent;color:${NAVY};border:1px solid ${NAVY};`,
+    "outline-navy": `background:${WHITE};color:${NAVY};border:1px solid ${NAVY};`,
   }
   return `<span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:0.03em;${styles[style]}">${label}</span>`
 }
