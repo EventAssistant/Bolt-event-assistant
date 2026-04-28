@@ -10,6 +10,7 @@ import { AuditPage } from "@/pages/AuditPage"
 import { LoginPage } from "@/pages/LoginPage"
 import { SignupPage } from "@/pages/SignupPage"
 import { DemoPage } from "@/pages/DemoPage"
+import { LandingPage } from "@/pages/LandingPage"
 import { ProtectedPages } from "@/components/ProtectedPages"
 
 function ProtectedLayout() {
@@ -33,6 +34,7 @@ export function App() {
           <Toaster position="bottom-right" richColors closeButton />
           <BrowserRouter>
             <Routes>
+              <Route path="/" element={<LandingPage />} />
               <Route path="/client-intake" element={<ClientIntakePage />} />
               <Route path="/demo" element={<DemoPage />} />
               <Route path="/login" element={<LoginPage />} />
