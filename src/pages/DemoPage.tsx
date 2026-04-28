@@ -205,33 +205,35 @@ function ReportScreen({ formData, report, onSend, sending, sendError }: ReportSc
     <div className="min-h-screen bg-background px-4 py-8">
       <div className="max-w-lg mx-auto space-y-5">
 
-        {/* REPORT HEADER */}
-        <div className="space-y-3">
-          <div className="px-1">
-            <p className="text-xs font-semibold uppercase tracking-widest text-gold">
-              Event Recommendation Report — Sample
+        {/* REPORT HEADER — branded navy hero */}
+        <div className="rounded-xl overflow-hidden border border-navy/20">
+          {/* Top accent bar */}
+          <div className="h-1 bg-gold" />
+          {/* Navy hero body */}
+          <div className="bg-navy px-6 pt-6 pb-5">
+            <p className="text-xs font-semibold uppercase tracking-widest text-gold/80 mb-3">
+              Sample Report · Texas Business Calendars
             </p>
+            <h1 className="text-2xl font-extrabold text-white tracking-tight leading-tight">
+              {formData.name}'s Event Recommendations
+            </h1>
+            <p className="text-sm text-white/60 mt-1.5 font-medium">
+              San Antonio, TX
+            </p>
+            <div className="flex flex-wrap gap-2 mt-4">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-gold/15 border border-gold/30 px-3 py-1 text-xs font-semibold text-gold">
+                Goal: {formData.goal}
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 border border-white/20 px-3 py-1 text-xs font-semibold text-white/80">
+                {formData.industry}
+              </span>
+            </div>
           </div>
-          <Card className="border-navy/20">
-            <CardContent className="pt-5 pb-5">
-              <h1 className="text-2xl font-bold text-navy leading-tight mb-2">
-                {formData.name}'s Networking Snapshot
-              </h1>
-              <p className="text-sm text-foreground/70">
-                <span className="text-navy font-medium">{formData.goal}</span>
-                {" · "}
-                <span className="text-navy font-medium">{formData.industry}</span>
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Personalized intro */}
-        <Card className="border-navy/20">
-          <CardContent className="pt-5 pb-5">
+          {/* Intro section — white bg, attached below hero */}
+          <div className="bg-card border-t border-navy/10 px-6 py-5">
             <p className="text-sm leading-relaxed text-foreground">{report.intro}</p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* ── EVENT RECOMMENDATION ── */}
         <div>
