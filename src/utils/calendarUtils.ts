@@ -60,6 +60,7 @@ export function buildGoogleCalendarUrl(event: Event): string {
     dates: `${toCompactDatetime(start)}/${toCompactDatetime(end)}`,
     details: [event.description, event.website].filter(Boolean).join("\n\n"),
     location: [event.address, event.event_city, event.state].filter(Boolean).join(", "),
+    ctz: "America/Chicago",
   })
 
   return `https://calendar.google.com/calendar/render?${params.toString()}`
@@ -120,6 +121,7 @@ function buildShortGoogleCalendarUrl(event: Event): string {
     text: event.name,
     dates: `${toCompactDatetime(start)}/${toCompactDatetime(end)}`,
     location: [event.event_city, event.state].filter(Boolean).join(", "),
+    ctz: "America/Chicago",
   })
   return `https://calendar.google.com/calendar/render?${params.toString()}`
 }
