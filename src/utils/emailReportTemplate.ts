@@ -123,24 +123,10 @@ function buildEventCardHTML(card: EmailEventCard): string {
           <td style="vertical-align:middle;">
             <div style="margin-bottom:6px;">
               ${tagPill("Top Pick", "navy-filled")}
-              &nbsp;${tagPill(card.eventType, "outline-navy")}
             </div>
-            <h2 style="margin:0;font-size:17px;font-weight:800;color:${NAVY};line-height:1.3;">${card.title}</h2>
+            <h2 style="margin:0 0 8px;font-size:17px;font-weight:800;color:${NAVY};line-height:1.3;">${card.title}</h2>
+            <p style="margin:0;font-size:13px;color:${TEXT_MUTED};">&#128197; ${card.date} &nbsp;&nbsp; &#128336; ${card.time}${card.venue ? `&nbsp;&nbsp; &#128205; ${card.venue}` : ""}</p>
           </td>
-        </tr>
-      </table>
-
-      <!-- Date / time / venue / cost row -->
-      <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom:6px;">
-        <tr>
-          <td style="padding:3px 16px 3px 0;font-size:13px;color:${TEXT_MAIN};white-space:nowrap;">${card.date}</td>
-          <td style="padding:3px 16px 3px 0;font-size:13px;color:${TEXT_MAIN};white-space:nowrap;">${card.time}</td>
-        </tr>
-        <tr>
-          <td colspan="2" style="padding:3px 0;font-size:13px;color:${TEXT_MAIN};">${card.venue || "—"}</td>
-        </tr>
-        <tr>
-          <td colspan="2" style="padding:3px 0;font-size:13px;color:${TEXT_MAIN};">${card.cost}</td>
         </tr>
       </table>
     </div>
@@ -205,7 +191,6 @@ function buildOrgCardHTML(card: EmailOrgCard): string {
           <td style="vertical-align:middle;">
             <div style="margin-bottom:6px;">
               ${tagPill("Top Pick", "navy-filled")}
-              &nbsp;${tagPill(card.orgType, "outline-navy")}
             </div>
             <h2 style="margin:0 0 4px;font-size:17px;font-weight:800;color:${NAVY};line-height:1.3;">${card.name}</h2>
             ${websiteLink}
