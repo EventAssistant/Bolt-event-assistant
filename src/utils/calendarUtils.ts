@@ -65,40 +65,6 @@ export function buildGoogleCalendarUrl(event: Event): string {
   return `https://calendar.google.com/calendar/render?${params.toString()}`
 }
 
-function buildOutlookCalendarUrl(event: Event, office365 = false): string {
-  const { start, end } = parseEventDateTime(event)
-  if (!start || !end) return ""
-
-  const base = office365
-    ? "https://outlook.office.com/calendar/0/deeplink/compose"
-    : "https://outlook.live.com/calendar/0/deeplink/compose"
-
-  const params = new URLSearchParams({
-    subject: event.name,
-    startdt: toIsoDatetime(start),
-    enddt: toIsoDatetime(end),
-    body: [event.description, event.website].filter(Boolean).join("\n\n"),
-    location: [event.address, event.event_city, event.state].filter(Boolean).join(", "),
-  })
-
-  return `${base}?${params.toString()}`
-}
-
-function buildYahooCalendarUrl(event: Event): string {
-  const { start, end } = parseEventDateTime(event)
-  if (!start || !end) return ""
-
-  const params = new URLSearchParams({
-    v: "60",
-    title: event.name,
-    st: toCompactDatetime(start),
-    et: toCompactDatetime(end),
-    desc: [event.description, event.website].filter(Boolean).join("\n\n"),
-    in_loc: [event.address, event.event_city, event.state].filter(Boolean).join(", "),
-  })
-
-  return `https://calendar.yahoo.com/?${params.toString()}`
-}
 
 function icsEscape(str: string): string {
   return (str ?? "").replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n")
@@ -146,27 +112,55 @@ export function downloadIcs(event: Event, filename?: string): void {
 }
 
 // DUAL CALENDAR SYSTEM — addevent for in-app, static links for email. Do not merge these.
+function buildShortGoogleCalendarUrl(event: Event): string {
+  const { start, end } = parseEventDateTime(event)
+  if (!start || !end) return ""
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: event.name,
+    dates: `${toCompactDatetime(start)}/${toCompactDatetime(end)}`,
+    location: [event.event_city, event.state].filter(Boolean).join(", "),
+  })
+  return `https://calendar.google.com/calendar/render?${params.toString()}`
+}
+
+function buildShortOutlookCalendarUrl(event: Event, office365 = false): string {
+  const { start, end } = parseEventDateTime(event)
+  if (!start || !end) return ""
+  const base = office365
+    ? "https://outlook.office.com/calendar/0/deeplink/compose"
+    : "https://outlook.live.com/calendar/0/deeplink/compose"
+  const params = new URLSearchParams({
+    subject: event.name,
+    startdt: toIsoDatetime(start),
+    enddt: toIsoDatetime(end),
+    location: [event.event_city, event.state].filter(Boolean).join(", "),
+  })
+  return `${base}?${params.toString()}`
+}
+
+function buildShortYahooCalendarUrl(event: Event): string {
+  const { start, end } = parseEventDateTime(event)
+  if (!start || !end) return ""
+  const params = new URLSearchParams({
+    v: "60",
+    title: event.name,
+    st: toCompactDatetime(start),
+    et: toCompactDatetime(end),
+    in_loc: [event.event_city, event.state].filter(Boolean).join(", "),
+  })
+  return `https://calendar.yahoo.com/?${params.toString()}`
+}
+
 export function generateEmailCalendarBlock(event: Event): string {
   if (!event.start_date) return ""
 
-  const googleUrl = buildGoogleCalendarUrl(event)
-  const outlookUrl = buildOutlookCalendarUrl(event, false)
-  const o365Url = buildOutlookCalendarUrl(event, true)
-  const yahooUrl = buildYahooCalendarUrl(event)
-  const icsContent = buildIcsContent(event)
-  const icsDataUrl = icsContent
-    ? `data:text/calendar;charset=utf8,${encodeURIComponent(icsContent)}`
-    : ""
+  const googleUrl = buildShortGoogleCalendarUrl(event)
+  const outlookUrl = buildShortOutlookCalendarUrl(event, false)
+  const o365Url = buildShortOutlookCalendarUrl(event, true)
+  const yahooUrl = buildShortYahooCalendarUrl(event)
 
-  const btnStyle = "display:inline-block; margin:4px 6px 4px 0; padding:8px 14px; text-decoration:none; border-radius:4px; font-size:13px; color:#ffffff;"
+  const btnStyle = "display:inline-block;margin:4px 6px 4px 0;padding:8px 14px;text-decoration:none;border-radius:4px;font-size:13px;color:#ffffff;"
 
-  return `
-<div style="margin: 12px 0;">
-  <p style="font-weight: bold; margin-bottom: 6px;">📅 Add to Your Calendar:</p>
-  ${googleUrl ? `<a href="${googleUrl}" target="_blank" style="${btnStyle} background:#4285F4;">Google Calendar</a>` : ""}
-  ${outlookUrl ? `<a href="${outlookUrl}" target="_blank" style="${btnStyle} background:#0078D4;">Outlook.com</a>` : ""}
-  ${o365Url ? `<a href="${o365Url}" target="_blank" style="${btnStyle} background:#D83B01;">Microsoft 365</a>` : ""}
-  ${icsDataUrl ? `<a href="${icsDataUrl}" target="_blank" style="${btnStyle} background:#555555;">Apple / iCal</a>` : ""}
-  ${yahooUrl ? `<a href="${yahooUrl}" target="_blank" style="${btnStyle} background:#6001D2;">Yahoo Calendar</a>` : ""}
-</div>`
+  return `<div style="margin:12px 0;"><p style="font-weight:bold;margin-bottom:6px;">Add to Your Calendar:</p>${googleUrl ? `<a href="${googleUrl}" target="_blank" style="${btnStyle}background:#4285F4;">Google Calendar</a>` : ""}${outlookUrl ? `<a href="${outlookUrl}" target="_blank" style="${btnStyle}background:#0078D4;">Outlook.com</a>` : ""}${o365Url ? `<a href="${o365Url}" target="_blank" style="${btnStyle}background:#D83B01;">Microsoft 365</a>` : ""}${yahooUrl ? `<a href="${yahooUrl}" target="_blank" style="${btnStyle}background:#6001D2;">Yahoo Calendar</a>` : ""}</div>`
 }
