@@ -9,6 +9,7 @@ import { ClientIntakePage } from "@/pages/ClientIntakePage"
 import { AuditPage } from "@/pages/AuditPage"
 import { LoginPage } from "@/pages/LoginPage"
 import { SignupPage } from "@/pages/SignupPage"
+import { DemoPage } from "@/pages/DemoPage"
 import { ProtectedPages } from "@/components/ProtectedPages"
 
 function ProtectedLayout() {
@@ -33,6 +34,7 @@ export function App() {
           <BrowserRouter>
             <Routes>
               <Route path="/client-intake" element={<ClientIntakePage />} />
+              <Route path="/demo" element={<DemoPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
               <Route element={<ProtectedLayout />}>
