@@ -205,26 +205,26 @@ function ReportScreen({ formData, report, onSend, sending, sendError }: ReportSc
     <div className="min-h-screen bg-background px-4 py-8">
       <div className="max-w-lg mx-auto space-y-5">
 
-        {/* SAMPLE REPORT banner + header */}
-        <Card className="relative overflow-hidden border-2 border-navy/20">
-          {/* Full-width sample banner */}
-          <div className="bg-navy text-gold text-center py-2 px-4">
-            <span className="text-xs font-bold uppercase tracking-widest">Sample Report</span>
+        {/* REPORT HEADER */}
+        <div className="space-y-3">
+          <div className="px-1">
+            <p className="text-xs font-semibold uppercase tracking-widest text-gold">
+              Event Recommendation Report — Sample
+            </p>
           </div>
-          <CardContent className="pt-5 pb-5">
-            <p className="text-xs font-medium uppercase tracking-wide text-gold mb-1">
-              Networking Snapshot Report
-            </p>
-            <h1 className="text-2xl font-bold text-navy leading-tight">
-              {formData.name}'s Networking Snapshot
-            </h1>
-            <p className="text-sm text-foreground/70 mt-1">
-              Goal: <span className="font-medium text-navy">{formData.goal}</span>
-              {" · "}
-              Industry: <span className="font-medium text-navy">{formData.industry}</span>
-            </p>
-          </CardContent>
-        </Card>
+          <Card className="border-navy/20">
+            <CardContent className="pt-5 pb-5">
+              <h1 className="text-2xl font-bold text-navy leading-tight mb-2">
+                {formData.name}'s Networking Snapshot
+              </h1>
+              <p className="text-sm text-foreground/70">
+                <span className="text-navy font-medium">{formData.goal}</span>
+                {" · "}
+                <span className="text-navy font-medium">{formData.industry}</span>
+              </p>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Personalized intro */}
         <Card className="border-navy/20">

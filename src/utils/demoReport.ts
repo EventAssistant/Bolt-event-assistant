@@ -193,16 +193,16 @@ const ORG_DATA: Record<DemoGoal, DemoOrgRec> = {
 }
 
 const INTRO_TEMPLATES: Record<DemoGoal, (name: string, industry: string) => string> = {
-  Referrals: (name, industry) =>
-    `${name}, based on your background in ${industry}, you're well-positioned to build a strong referral network in San Antonio. The connections below represent events and organizations where professionals actively exchange qualified leads — not just business cards. Consistent presence in these spaces will put you in front of the right referral partners.`,
-  Partnerships: (name, industry) =>
-    `${name}, your experience in ${industry} makes you a compelling partnership candidate for complementary businesses in the San Antonio market. The recommendations below focus on environments where business owners and operators are specifically looking to collaborate, bundle services, or co-market to shared audiences.`,
-  Clients: (name, industry) =>
-    `${name}, with your focus in ${industry}, the most direct path to new clients is showing up where decision-makers are already gathering. The events and organization below are known for attracting business owners and executives with real purchasing authority — exactly the room you want to be in.`,
-  Visibility: (name, industry) =>
-    `${name}, building visibility in ${industry} across San Antonio means showing up consistently in the right rooms. The recommendations below prioritize high-profile events and organizations where your presence compounds over time — turning a familiar face into a recognized name.`,
-  Hiring: (name, industry) =>
-    `${name}, finding the right talent in ${industry} starts with being present where professionals gather. The events and organization below are strong sourcing environments for both active job seekers and the passive candidates who are hardest to reach through job boards alone.`,
+  Referrals: (_name, industry) =>
+    `San Antonio's ${industry} professionals have one of the strongest referral opportunities in the market right now. The events and organizations below were selected specifically for your background and where you are in your networking journey. Showing up consistently in these spaces will put you in front of the right partners at the right time.`,
+  Partnerships: (_name, industry) =>
+    `${industry} is where partnership opportunities matter most in San Antonio's business ecosystem. The events and organizations below focus exclusively on rooms where business owners are actively looking to collaborate and co-create. Your background positions you perfectly to explore these opportunities.`,
+  Clients: (_name, industry) =>
+    `Decision-makers actively seeking ${industry} solutions gather in San Antonio throughout the year. The events and organizations below are where qualified prospects spend their time — where they're already thinking about growth and open to new partnerships. Consistent visibility in these rooms translates directly to client conversations.`,
+  Visibility: (_name, industry) =>
+    `Becoming a recognized name in ${industry} in San Antonio happens through strategic presence and consistent engagement. The events and organizations below are where practitioners and decision-makers gather — and where your visibility compounds fastest. Three to four months of consistent attendance typically makes you a known name.`,
+  Hiring: (_name, industry) =>
+    `The best ${industry} talent in San Antonio connects in specific professional circles and events. The events and organizations below are where both active job seekers and the passive candidates you're looking for spend their time. Direct conversations here often lead to faster, better-fit placements.`,
 }
 
 export function buildDemoReport(data: DemoFormData): DemoReportData {
