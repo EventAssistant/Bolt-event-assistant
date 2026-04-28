@@ -70,7 +70,21 @@ const ICON_LOCK = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" s
 
 // ─── Priority badge (circle #N) ───────────────────────────────────────────────
 function priorityBadgeHTML(rank: number): string {
-  return `<span style="display:inline-block;width:36px;height:36px;border-radius:50%;background:${NAVY};text-align:center;line-height:36px;font-size:13px;font-weight:800;color:${WHITE};flex-shrink:0;">#${rank}</span>`
+  const borderColor = rank === 1 ? "#4a7c59" : rank === 2 ? "#0f2044" : "#6b7280"
+  const textColor = rank === 1 ? "#2d5a3d" : rank === 2 ? "#0f2044" : "#6b7280"
+  const bgColor = rank === 1 ? "#e8f5ed" : rank === 2 ? "#e8edf5" : "#f3f4f6"
+  return `<table cellpadding="0" cellspacing="0" border="0" style="display:inline-table;text-align:center;">
+    <tr>
+      <td style="width:56px;height:56px;border-radius:50%;border:2px solid ${borderColor};background:${bgColor};text-align:center;vertical-align:middle;">
+        <span style="font-size:16px;font-weight:800;color:${textColor};">#${rank}</span>
+      </td>
+    </tr>
+    <tr>
+      <td style="text-align:center;padding-top:3px;">
+        <span style="font-size:10px;color:#9ca3af;font-weight:500;">priority</span>
+      </td>
+    </tr>
+  </table>`
 }
 
 // ─── Tag pill ─────────────────────────────────────────────────────────────────
@@ -100,15 +114,21 @@ function buildEventCardHTML(card: EmailEventCard): string {
 
     <!-- Card header -->
     <div style="padding:20px 22px 16px;background:${WHITE};">
-      <!-- Priority + tags row -->
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
-        ${priorityBadgeHTML(card.priorityRank)}
-        ${tagPill("Top Pick", "navy-filled")}
-        ${tagPill(card.eventType, "outline-navy")}
-      </div>
-
-      <!-- Event title -->
-      <h2 style="margin:0 0 12px;font-size:18px;font-weight:800;color:${NAVY};line-height:1.3;">${card.title}</h2>
+      <!-- Priority + tags + title row -->
+      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:14px;">
+        <tr>
+          <td style="vertical-align:middle;width:66px;padding-right:14px;">
+            ${priorityBadgeHTML(card.priorityRank)}
+          </td>
+          <td style="vertical-align:middle;">
+            <div style="margin-bottom:6px;">
+              ${tagPill("Top Pick", "navy-filled")}
+              &nbsp;${tagPill(card.eventType, "outline-navy")}
+            </div>
+            <h2 style="margin:0;font-size:17px;font-weight:800;color:${NAVY};line-height:1.3;">${card.title}</h2>
+          </td>
+        </tr>
+      </table>
 
       <!-- Date / time / venue / cost row -->
       <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom:6px;">
@@ -176,16 +196,22 @@ function buildOrgCardHTML(card: EmailOrgCard): string {
 
     <!-- Card header -->
     <div style="padding:20px 22px 16px;background:${WHITE};">
-      <!-- Priority + tags row -->
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
-        ${priorityBadgeHTML(card.priorityRank)}
-        ${tagPill("Top Pick", "navy-filled")}
-        ${tagPill(card.orgType, "outline-navy")}
-      </div>
-
-      <!-- Org name -->
-      <h2 style="margin:0 0 4px;font-size:18px;font-weight:800;color:${NAVY};line-height:1.3;">${card.name}</h2>
-      ${websiteLink}
+      <!-- Priority + tags + title row -->
+      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:14px;">
+        <tr>
+          <td style="vertical-align:middle;width:66px;padding-right:14px;">
+            ${priorityBadgeHTML(card.priorityRank)}
+          </td>
+          <td style="vertical-align:middle;">
+            <div style="margin-bottom:6px;">
+              ${tagPill("Top Pick", "navy-filled")}
+              &nbsp;${tagPill(card.orgType, "outline-navy")}
+            </div>
+            <h2 style="margin:0 0 4px;font-size:17px;font-weight:800;color:${NAVY};line-height:1.3;">${card.name}</h2>
+            ${websiteLink}
+          </td>
+        </tr>
+      </table>
     </div>
 
     <!-- Card body -->
