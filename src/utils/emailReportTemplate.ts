@@ -65,20 +65,8 @@ const TEXT_MUTED = "#6b7280"
 const TEXT_SMALL = "#9ca3af"
 const WHITE = "#ffffff"
 
-// ─── SVG icon strings (email-safe inline SVGs) ───────────────────────────────
-const ICON_CALENDAR = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${GOLD}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:4px;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`
-const ICON_CLOCK = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${GOLD}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:4px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`
-const ICON_PIN = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${GOLD}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:4px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`
-const ICON_DOLLAR = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${GOLD}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:4px;"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>`
-const ICON_TRENDING = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${NAVY}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:6px;"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>`
-const ICON_PEOPLE = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${NAVY}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:6px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`
-const ICON_CHECKLIST = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${NAVY}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:6px;"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>`
 const ICON_EXTERNAL = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="${WHITE}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:5px;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`
-const ICON_CALENDAR_ADD = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="${NAVY}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:5px;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="12" y1="15" x2="12" y2="19"/><line x1="10" y1="17" x2="14" y2="17"/></svg>`
-const ICON_GLOBE = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${GOLD}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:6px;"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`
-const ICON_REPEAT = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${GOLD}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:6px;"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>`
 const ICON_LOCK = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="${NAVY}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`
-const ICON_STAR = `<svg width="11" height="11" viewBox="0 0 24 24" fill="${GOLD}" stroke="${GOLD}" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:4px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`
 
 // ─── Priority badge (circle #N) ───────────────────────────────────────────────
 function priorityBadgeHTML(rank: number): string {
@@ -102,11 +90,6 @@ function tagPill(label: string, style: "navy-filled" | "gold-filled" | "outline-
   return `<span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:0.03em;${styles[style]}">${label}</span>`
 }
 
-// ─── Section label row (icon + ALL CAPS label) ────────────────────────────────
-function sectionLabel(icon: string, label: string): string {
-  return `<p style="margin:0 0 8px;font-size:11px;font-weight:700;letter-spacing:0.08em;color:${NAVY};text-transform:uppercase;">${icon}${label}</p>`
-}
-
 // ─── Event card ───────────────────────────────────────────────────────────────
 function buildEventCardHTML(card: EmailEventCard): string {
   const whatToDoItems = card.whatToDo
@@ -116,8 +99,6 @@ function buildEventCardHTML(card: EmailEventCard): string {
   const viewEventBtn = card.registrationLink
     ? `<a href="${card.registrationLink}" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:9px 18px;background:${NAVY};color:${WHITE};border-radius:6px;font-size:12px;font-weight:700;text-decoration:none;margin-right:8px;">${ICON_EXTERNAL}View Event</a>`
     : ""
-
-  const calendarBtn = `<span style="display:inline-block;padding:9px 18px;background:transparent;color:${NAVY};border:2px solid ${NAVY};border-radius:6px;font-size:12px;font-weight:700;">${ICON_CALENDAR_ADD}Add to Calendar</span>`
 
   return `
   <div style="margin-bottom:28px;border:1px solid ${BORDER};border-radius:10px;overflow:hidden;background:${WHITE};">
@@ -137,7 +118,7 @@ function buildEventCardHTML(card: EmailEventCard): string {
             &nbsp;
             ${tagPill(card.eventType, "outline-navy")}
             &nbsp;
-            ${tagPill(`${ICON_STAR}Recommended`, "gold-filled")}
+            ${tagPill("Recommended", "gold-filled")}
           </td>
         </tr>
       </table>
@@ -148,14 +129,14 @@ function buildEventCardHTML(card: EmailEventCard): string {
       <!-- Date / time / venue / cost row -->
       <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom:6px;">
         <tr>
-          <td style="padding:3px 16px 3px 0;font-size:13px;color:${TEXT_MAIN};white-space:nowrap;">${ICON_CALENDAR}${card.date}</td>
-          <td style="padding:3px 16px 3px 0;font-size:13px;color:${TEXT_MAIN};white-space:nowrap;">${ICON_CLOCK}${card.time}</td>
+          <td style="padding:3px 16px 3px 0;font-size:13px;color:${TEXT_MAIN};white-space:nowrap;">${card.date}</td>
+          <td style="padding:3px 16px 3px 0;font-size:13px;color:${TEXT_MAIN};white-space:nowrap;">${card.time}</td>
         </tr>
         <tr>
-          <td colspan="2" style="padding:3px 0;font-size:13px;color:${TEXT_MAIN};">${ICON_PIN}${card.venue || "—"}</td>
+          <td colspan="2" style="padding:3px 0;font-size:13px;color:${TEXT_MAIN};">${card.venue || "—"}</td>
         </tr>
         <tr>
-          <td colspan="2" style="padding:3px 0;font-size:13px;color:${TEXT_MAIN};">${ICON_DOLLAR}${card.cost}</td>
+          <td colspan="2" style="padding:3px 0;font-size:13px;color:${TEXT_MAIN};">${card.cost}</td>
         </tr>
       </table>
     </div>
@@ -169,24 +150,27 @@ function buildEventCardHTML(card: EmailEventCard): string {
       <div style="height:1px;background:${BORDER};margin-bottom:18px;"></div>
 
       <!-- WHY THIS EVENT -->
-      ${sectionLabel(ICON_TRENDING, "Why This Event")}
+      <p style="margin:0 0 8px;font-size:11px;font-weight:700;letter-spacing:0.08em;color:${NAVY};text-transform:uppercase;">Why This Event</p>
       <p style="margin:0 0 18px;font-size:13px;color:${TEXT_MAIN};line-height:1.6;">${card.whyThisEvent}</p>
 
       <!-- WHO YOU'LL MEET -->
-      ${sectionLabel(ICON_PEOPLE, "Who You'll Meet")}
+      <p style="margin:0 0 8px;font-size:11px;font-weight:700;letter-spacing:0.08em;color:${NAVY};text-transform:uppercase;">Who You'll Meet</p>
       <p style="margin:0 0 18px;font-size:13px;color:${TEXT_MAIN};line-height:1.6;">${card.whoYoullMeet}</p>
 
       <!-- Divider -->
       <div style="height:1px;background:${BORDER};margin-bottom:18px;"></div>
 
       <!-- WHAT TO DO -->
-      ${sectionLabel(ICON_CHECKLIST, "What To Do")}
+      <p style="margin:0 0 8px;font-size:11px;font-weight:700;letter-spacing:0.08em;color:${NAVY};text-transform:uppercase;">What To Do</p>
       <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;width:100%;">
         ${whatToDoItems}
       </table>
 
-      <!-- Action buttons -->
-      <div>${viewEventBtn}${calendarBtn}</div>
+      <!-- View Event button -->
+      ${viewEventBtn ? `<div style="margin-bottom:12px;">${viewEventBtn}</div>` : ""}
+
+      <!-- Calendar buttons -->
+      ${card.calendarBlock ?? ""}
     </div>
   </div>`
 }
@@ -198,7 +182,7 @@ function buildOrgCardHTML(card: EmailOrgCard): string {
     .join("")
 
   const websiteLink = card.website
-    ? `<p style="margin:6px 0 0;font-size:13px;">${ICON_GLOBE}<a href="${card.website}" target="_blank" rel="noopener noreferrer" style="color:${GOLD};text-decoration:underline;font-weight:600;">${card.website.replace("https://", "")}</a></p>`
+    ? `<p style="margin:6px 0 0;font-size:13px;"><a href="${card.website}" target="_blank" rel="noopener noreferrer" style="color:${GOLD};text-decoration:underline;font-weight:600;">${card.website.replace("https://", "")}</a></p>`
     : ""
 
   return `
@@ -219,7 +203,7 @@ function buildOrgCardHTML(card: EmailOrgCard): string {
             &nbsp;
             ${tagPill(card.orgType, "outline-navy")}
             &nbsp;
-            ${tagPill(`${ICON_STAR}Recommended`, "gold-filled")}
+            ${tagPill("Recommended", "gold-filled")}
           </td>
         </tr>
       </table>
@@ -238,18 +222,18 @@ function buildOrgCardHTML(card: EmailOrgCard): string {
       <div style="height:1px;background:${BORDER};margin-bottom:18px;"></div>
 
       <!-- WHY THIS ORG -->
-      ${sectionLabel(ICON_TRENDING, "Why This Organization")}
+      <p style="margin:0 0 8px;font-size:11px;font-weight:700;letter-spacing:0.08em;color:${NAVY};text-transform:uppercase;">Why This Organization</p>
       <p style="margin:0 0 18px;font-size:13px;color:${TEXT_MAIN};line-height:1.6;">${card.whyThisOrg}</p>
 
       <!-- WHO YOU'LL MEET -->
-      ${sectionLabel(ICON_PEOPLE, "Who You'll Meet")}
+      <p style="margin:0 0 8px;font-size:11px;font-weight:700;letter-spacing:0.08em;color:${NAVY};text-transform:uppercase;">Who You'll Meet</p>
       <p style="margin:0 0 18px;font-size:13px;color:${TEXT_MAIN};line-height:1.6;">${card.whoYoullMeet}</p>
 
       <!-- Divider -->
       <div style="height:1px;background:${BORDER};margin-bottom:18px;"></div>
 
       <!-- WHAT TO DO -->
-      ${sectionLabel(ICON_CHECKLIST, "What To Do")}
+      <p style="margin:0 0 8px;font-size:11px;font-weight:700;letter-spacing:0.08em;color:${NAVY};text-transform:uppercase;">What To Do</p>
       <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;width:100%;">
         ${whatToDoItems}
       </table>
@@ -258,11 +242,11 @@ function buildOrgCardHTML(card: EmailOrgCard): string {
       <div style="background:${GREY_BG};border-radius:8px;padding:14px 16px;">
         <table cellpadding="0" cellspacing="0" border="0" width="100%">
           <tr>
-            <td style="padding:4px 0;font-size:12px;font-weight:700;color:${TEXT_MUTED};text-transform:uppercase;letter-spacing:0.05em;width:160px;">${ICON_REPEAT}Meeting Frequency</td>
+            <td style="padding:4px 0;font-size:12px;font-weight:700;color:${TEXT_MUTED};text-transform:uppercase;letter-spacing:0.05em;width:160px;">Meeting Frequency</td>
             <td style="padding:4px 0;font-size:13px;font-weight:600;color:${NAVY};">${card.meetingFrequency}</td>
           </tr>
           <tr>
-            <td style="padding:4px 0;font-size:12px;font-weight:700;color:${TEXT_MUTED};text-transform:uppercase;letter-spacing:0.05em;">${ICON_DOLLAR}Membership Cost</td>
+            <td style="padding:4px 0;font-size:12px;font-weight:700;color:${TEXT_MUTED};text-transform:uppercase;letter-spacing:0.05em;">Membership Cost</td>
             <td style="padding:4px 0;font-size:13px;font-weight:600;color:${NAVY};">${card.membershipCost}</td>
           </tr>
           <tr>
