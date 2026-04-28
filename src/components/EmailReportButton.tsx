@@ -43,7 +43,14 @@ export function EmailReportButton({ profile, reportHTML, onOpenSettings, onSent 
       onSent?.()
       setTimeout(() => setSendState("idle"), 5000)
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to send email"
+      let message = "Failed to send email"
+      if (err instanceof Error) {
+        message = err.message
+      } else if (err && typeof err === "object" && "text" in err) {
+        message = String((err as { text: unknown }).text)
+      } else if (typeof err === "string") {
+        message = err
+      }
       setErrorMessage(message)
       setSendState("error")
     }
